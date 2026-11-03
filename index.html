@@ -98,6 +98,16 @@
   .modal-actions .remove-btn:hover{background:#666}
   .modal-actions .remove-all{background:#7a1f1f;color:#fff}
   .modal-actions .remove-all:hover{background:#5a1515}
+  .flag-red {
+  display: inline-block;
+  width: 18px;
+  height: 12px;
+  background: #cc0000;
+  border: 1px solid #8b0000;
+  border-radius: 2px;
+  vertical-align: middle;
+  margin-right: 4px;
+}
 </style>
 </head>
 <body>
@@ -116,7 +126,7 @@
 <main>
   <section>
     <div class="faction-tabs">
-      <button data-faction="ussr" class="active">☭ СССР</button>
+      <button data-faction="ussr" class="active"><span class="flag-red"></span> СССР</button>
       <button data-faction="germany">🇩🇪 Германия</button>
       <button data-faction="usa">🇺🇸 США</button>
       <button data-faction="hungary">🇭🇺 Венгрия</button>
