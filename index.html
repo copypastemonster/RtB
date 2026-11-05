@@ -22,13 +22,31 @@
   .limit-input{width:76px;background:var(--panel-2);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px}
   main{display:grid;grid-template-columns:1fr 400px;gap:14px;padding:14px;max-width:1500px;margin:0 auto}
   @media(max-width:1050px){main{grid-template-columns:1fr}}
-  .faction-tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
-  .faction-tabs button{flex:1 0 auto;padding:9px 10px;background:var(--panel);border:2px solid var(--border);color:var(--text);border-radius:6px;cursor:pointer;font-size:14px;font-weight:600;transition:.15s;min-width:90px}
-  .faction-tabs button:hover{background:#333}
-  .faction-tabs button.active[data-faction="ussr"]{border-color:#c62828;background:#3a1c1c}
-  .faction-tabs button.active[data-faction="germany"]{border-color:#607d8b;background:#22303a}
-  .faction-tabs button.active[data-faction="usa"]{border-color:#2e7d32;background:#1e3320}
-  .faction-tabs button.active[data-faction="hungary"]{border-color:#8d6e63;background:#332a25}
+  .faction-tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.faction-tabs button {
+  padding: 9px 10px;
+  background: var(--panel);
+  border: 2px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: .15s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.faction-tabs button:hover { background: #333; }
+.faction-tabs button.active[data-faction="ussr"]    { border-color: #c62828; background: #3a1c1c; }
+.faction-tabs button.active[data-faction="germany"] { border-color: #607d8b; background: #22303a; }
+.faction-tabs button.active[data-faction="usa"]     { border-color: #2e7d32; background: #1e3320; }
+.faction-tabs button.active[data-faction="hungary"] { border-color: #8d6e63; background: #332a25; }
   .flag-red{display:inline-block;width:18px;height:12px;background:#cc0000;border:1px solid #8b0000;border-radius:2px;vertical-align:middle;margin-right:4px}
   .unit-list{display:flex;flex-direction:column;gap:6px;max-height:calc(100vh - 160px);overflow-y:auto;padding-right:4px}
   .unit-row{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:8px 10px;display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;cursor:pointer;transition:.12s}
