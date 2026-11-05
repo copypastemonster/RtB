@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RtB 0.3.9 — Army Builder</title>
+<title>RtB 0.3.9 — Army Builder v14</title>
 <style>
   :root {
     --bg:#1a1a1a; --panel:#262626; --panel-2:#303030; --text:#e8e8e8;
@@ -11,7 +11,16 @@
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-  header{background:linear-gradient(90deg,#151515,#2b2b2b);border-bottom:3px solid var(--accent);padding:14px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+  /* ШАПКА — фиксирована сверху */
+  header{
+    position:sticky; top:0; z-index:100;
+    background:linear-gradient(90deg,#151515,#2b2b2b);
+    border-bottom:3px solid var(--accent);
+    box-shadow:0 2px 12px rgba(0,0,0,.6);
+    padding:14px 22px;
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
+  }
   header h1{margin:0;font-size:20px;letter-spacing:1px}
   header h1 span{color:var(--accent)}
   .total-box{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:15px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
@@ -20,35 +29,25 @@
   .total-box .remain.ok{color:#81c784}
   .total-box .remain.over{color:#ff5252}
   .limit-input{width:76px;background:var(--panel-2);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px}
+
   main{display:grid;grid-template-columns:1fr 400px;gap:14px;padding:14px;max-width:1500px;margin:0 auto}
   @media(max-width:1050px){main{grid-template-columns:1fr}}
-  .faction-tabs {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 6px;
-  margin-bottom: 10px;
-}
-.faction-tabs button {
-  padding: 9px 10px;
-  background: var(--panel);
-  border: 2px solid var(--border);
-  color: var(--text);
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  transition: .15s;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.faction-tabs button:hover { background: #333; }
-.faction-tabs button.active[data-faction="ussr"]    { border-color: #c62828; background: #3a1c1c; }
-.faction-tabs button.active[data-faction="germany"] { border-color: #607d8b; background: #22303a; }
-.faction-tabs button.active[data-faction="usa"]     { border-color: #2e7d32; background: #1e3320; }
-.faction-tabs button.active[data-faction="hungary"] { border-color: #8d6e63; background: #332a25; }
+
+  /* КНОПКИ СТРАН — Grid, ровно распределяются */
+  .faction-tabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px;margin-bottom:10px}
+  .faction-tabs button{
+    padding:9px 10px;background:var(--panel);border:2px solid var(--border);color:var(--text);
+    border-radius:6px;cursor:pointer;font-size:14px;font-weight:600;transition:.15s;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .faction-tabs button:hover{background:#333}
+  .faction-tabs button.active[data-faction="ussr"]{border-color:#c62828;background:#3a1c1c}
+  .faction-tabs button.active[data-faction="germany"]{border-color:#607d8b;background:#22303a}
+  .faction-tabs button.active[data-faction="usa"]{border-color:#2e7d32;background:#1e3320}
+  .faction-tabs button.active[data-faction="hungary"]{border-color:#8d6e63;background:#332a25}
   .flag-red{display:inline-block;width:18px;height:12px;background:#cc0000;border:1px solid #8b0000;border-radius:2px;vertical-align:middle;margin-right:4px}
-  .unit-list{display:flex;flex-direction:column;gap:6px;max-height:calc(100vh - 160px);overflow-y:auto;padding-right:4px}
+
+  .unit-list{display:flex;flex-direction:column;gap:6px;max-height:calc(100vh - 90px);overflow-y:auto;padding-right:4px}
   .unit-row{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:8px 10px;display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;cursor:pointer;transition:.12s}
   .unit-row:hover{border-color:#777;background:#2d2d2d}
   .unit-row .info{min-width:0}
@@ -61,7 +60,8 @@
   .unit-row button{padding:6px 12px;background:var(--accent);border:none;color:#fff;border-radius:5px;cursor:pointer;font-weight:600;font-size:13px;white-space:nowrap}
   .unit-row button:hover{background:var(--accent-2)}
   .unit-row button.disabled{background:#444;cursor:not-allowed;opacity:.6}
-  aside{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px;height:fit-content;position:sticky;top:14px}
+
+  aside{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px;height:fit-content;position:sticky;top:74px}
   aside h2{margin:0 0 10px;font-size:17px;border-bottom:2px solid var(--accent);padding-bottom:6px}
   .roster-list{display:flex;flex-direction:column;gap:6px;max-height:55vh;overflow-y:auto;margin-bottom:10px}
   .roster-item{background:var(--panel-2);border-radius:5px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;cursor:pointer;transition:.12s}
@@ -85,6 +85,7 @@
   .roster-actions .danger:hover{background:#8e0000}
   @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(198,40,40,.6)}50%{box-shadow:0 0 0 6px rgba(198,40,40,0)}}
   textarea.export{width:100%;margin-top:8px;background:#111;color:#b0bec5;border:1px solid var(--border);border-radius:6px;padding:8px;font-family:monospace;font-size:12px;min-height:120px;resize:vertical}
+
   .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px}
   .modal-backdrop.open{display:flex}
   .modal{background:var(--panel);border:2px solid var(--accent);border-radius:10px;width:100%;max-width:720px;max-height:92vh;overflow-y:auto;padding:18px 20px 20px;position:relative;box-shadow:0 10px 40px rgba(0,0,0,.6)}
@@ -122,7 +123,7 @@
 <body>
 
 <header>
-  <h1>ДОРОГА НА <span>БЕРЛИН</span> — Army Builder</h1>
+  <h1>ДОРОГА НА <span>БЕРЛИН</span> — Army Builder v14</h1>
   <div class="total-box">
     <span>Очки: <b id="totalPoints">0</b></span>
     <span>Остаток: <span id="headerRemain" class="remain ok">500</span></span>
@@ -181,14 +182,10 @@ function priceForQualification(baseCost, q) {
 function qualificationOptions() { return [4, 5, 6, 7, 8, 9]; }
 
 /* =========================================================
-   2) FALLBACK: тестовые юниты, если units.json не загрузится.
-   Сразу видно: testunit1/2/3 = «данные не подгрузились».
+   2) FALLBACK: тестовые юниты, если units.json не загрузится
    ========================================================= */
 const DEFAULT_UNITS = {
-  ussr: [],
-  germany: [],
-  usa: [],
-  hungary: [],
+  ussr: [], germany: [], usa: [], hungary: [],
   common: [
     { key:"testunit1", name:"TEST UNIT 1 (fallback)", cost:10, qual:7, speed:"10 / 5",
       armor:{front:1,side:1,rear:1,roof:0,bottom:0},
@@ -633,7 +630,7 @@ function clearRoster() {
    ========================================================= */
 function exportRoster() {
   const lines = [];
-  lines.push("=== ДОРОГА НА БЕРЛИН — РОСТЕР ===");
+  lines.push("=== ДОРОГА НА БЕРЛИН — РОСТЕР (v14) ===");
   lines.push("Лимит очков: " + pointLimit);
   lines.push("Использовано: " + getRosterPoints());
   lines.push("Остаток: " + (pointLimit - getRosterPoints()));
@@ -671,7 +668,7 @@ if (els.modalBackdrop) els.modalBackdrop.addEventListener("click", (e) => {
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
 
 /* =========================================================
-   15) ЗАГРУЗКА units.json (с fallback на DEFAULT_UNITS)
+   15) ЗАГРУЗКА units.json (с fallback)
    ========================================================= */
 async function loadUnits() {
   let data = null;
