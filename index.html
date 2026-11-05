@@ -3,19 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RtB 0.3.9 — Army Builder v14</title>
+<title>RtB 0.3.9 — Army Builder v15</title>
 <style>
   :root {
     --bg:#1a1a1a; --panel:#262626; --panel-2:#303030; --text:#e8e8e8;
     --muted:#9aa0a6; --accent:#c62828; --accent-2:#8e1f1f; --green:#2e7d32; --border:#444;
+    --header-bg1:#151515; --header-bg2:#2b2b2b;
+    --input-bg:#303030; --input-text:#e8e8e8;
+    --modal-bg:#262626; --modal-overlay:rgba(0,0,0,.75);
+    --card-bg:#262626; --card-bg-2:#303030;
+    --text-strong:#fff; --text-dim:#ddd;
+    --amber:#ffcc80; --green-soft:#81c784; --red-soft:#ff5252;
+  }
+  body.light {
+    --bg:#f0f0f0; --panel:#ffffff; --panel-2:#f5f5f5; --text:#222;
+    --muted:#666; --accent:#c62828; --accent-2:#8e1f1f; --green:#2e7d32; --border:#ccc;
+    --header-bg1:#ffffff; --header-bg2:#f0f0f0;
+    --input-bg:#ffffff; --input-text:#222;
+    --modal-bg:#ffffff; --modal-overlay:rgba(0,0,0,.4);
+    --card-bg:#ffffff; --card-bg-2:#f0f0f0;
+    --text-strong:#111; --text-dim:#333;
+    --amber:#b26a00; --green-soft:#2e7d32; --red-soft:#c62828;
   }
   *{box-sizing:border-box}
   body{margin:0;font-family:"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 
-  /* ШАПКА — фиксирована сверху */
   header{
     position:sticky; top:0; z-index:100;
-    background:linear-gradient(90deg,#151515,#2b2b2b);
+    background:linear-gradient(90deg,var(--header-bg1),var(--header-bg2));
     border-bottom:3px solid var(--accent);
     box-shadow:0 2px 12px rgba(0,0,0,.6);
     padding:14px 22px;
@@ -24,118 +39,141 @@
   header h1{margin:0;font-size:20px;letter-spacing:1px}
   header h1 span{color:var(--accent)}
   .total-box{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:15px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
-  .total-box b{color:#ffcc80;font-size:19px}
+  .total-box b{color:var(--amber);font-size:19px}
   .total-box .remain{font-weight:700}
-  .total-box .remain.ok{color:#81c784}
-  .total-box .remain.over{color:#ff5252}
-  .limit-input{width:76px;background:var(--panel-2);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px}
+  .total-box .remain.ok{color:var(--green-soft)}
+  .total-box .remain.over{color:var(--red-soft)}
+  .limit-input{width:76px;background:var(--input-bg);border:1px solid var(--border);color:var(--input-text);padding:4px 6px;border-radius:4px}
+  .settings-btn{background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:15px;font-weight:600;transition:.15s}
+  .settings-btn:hover{background:var(--panel-2)}
 
   main{display:grid;grid-template-columns:1fr 400px;gap:14px;padding:14px;max-width:1500px;margin:0 auto}
   @media(max-width:1050px){main{grid-template-columns:1fr}}
 
-  /* КНОПКИ СТРАН — Grid, ровно распределяются */
   .faction-tabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px;margin-bottom:10px}
+  .faction-tabs.hidden{display:none}
   .faction-tabs button{
     padding:9px 10px;background:var(--panel);border:2px solid var(--border);color:var(--text);
     border-radius:6px;cursor:pointer;font-size:14px;font-weight:600;transition:.15s;
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   }
-  .faction-tabs button:hover{background:#333}
-  .faction-tabs button.active[data-faction="ussr"]{border-color:#c62828;background:#3a1c1c}
-  .faction-tabs button.active[data-faction="germany"]{border-color:#607d8b;background:#22303a}
-  .faction-tabs button.active[data-faction="usa"]{border-color:#2e7d32;background:#1e3320}
-  .faction-tabs button.active[data-faction="hungary"]{border-color:#8d6e63;background:#332a25}
+  .faction-tabs button:hover{background:var(--panel-2)}
+  .faction-tabs button.active[data-faction="ussr"]{border-color:#c62828;background:rgba(198,40,40,.15)}
+  .faction-tabs button.active[data-faction="germany"]{border-color:#607d8b;background:rgba(96,125,139,.15)}
+  .faction-tabs button.active[data-faction="usa"]{border-color:#2e7d32;background:rgba(46,125,50,.15)}
+  .faction-tabs button.active[data-faction="hungary"]{border-color:#8d6e63;background:rgba(141,110,99,.15)}
   .flag-red{display:inline-block;width:18px;height:12px;background:#cc0000;border:1px solid #8b0000;border-radius:2px;vertical-align:middle;margin-right:4px}
 
   .unit-list{display:flex;flex-direction:column;gap:6px;max-height:calc(100vh - 90px);overflow-y:auto;padding-right:4px}
   .unit-row{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:8px 10px;display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;cursor:pointer;transition:.12s}
-  .unit-row:hover{border-color:#777;background:#2d2d2d}
+  .unit-row:hover{border-color:#777;background:var(--panel-2)}
   .unit-row .info{min-width:0}
-  .unit-row .name{font-weight:700;font-size:14px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .unit-row .name{font-weight:700;font-size:14px;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .unit-row .desc{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .unit-row .cost{color:#ffcc80;font-weight:700;white-space:nowrap;font-size:14px;min-width:64px;text-align:right}
-  .unit-row select.q{background:var(--panel-2);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:4px 6px;font-size:13px;cursor:pointer}
-  .unit-row select.q option:disabled{color:#555}
+  .unit-row .cost{color:var(--amber);font-weight:700;white-space:nowrap;font-size:14px;min-width:64px;text-align:right}
+  .unit-row select.q{background:var(--input-bg);color:var(--input-text);border:1px solid var(--border);border-radius:4px;padding:4px 6px;font-size:13px;cursor:pointer}
+  .unit-row select.q option:disabled{color:#888}
   .unit-row .noqual{color:var(--muted);font-size:13px;min-width:50px;text-align:center}
   .unit-row button{padding:6px 12px;background:var(--accent);border:none;color:#fff;border-radius:5px;cursor:pointer;font-weight:600;font-size:13px;white-space:nowrap}
   .unit-row button:hover{background:var(--accent-2)}
-  .unit-row button.disabled{background:#444;cursor:not-allowed;opacity:.6}
+  .unit-row button.disabled{background:#555;cursor:not-allowed;opacity:.6}
 
   aside{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px;height:fit-content;position:sticky;top:74px}
   aside h2{margin:0 0 10px;font-size:17px;border-bottom:2px solid var(--accent);padding-bottom:6px}
   .roster-list{display:flex;flex-direction:column;gap:6px;max-height:55vh;overflow-y:auto;margin-bottom:10px}
   .roster-item{background:var(--panel-2);border-radius:5px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;cursor:pointer;transition:.12s}
-  .roster-item:hover{background:#3a3a3a}
+  .roster-item:hover{background:var(--card-bg-2);filter:brightness(1.1)}
   .roster-item .name{flex:1}
-  .roster-item .qty{background:#555;border-radius:4px;padding:1px 8px;font-size:12px}
-  .roster-item .unit-points{color:#ffcc80;font-weight:600;font-size:12px;min-width:52px;text-align:right}
+  .roster-item .qty{background:#555;color:#fff;border-radius:4px;padding:1px 8px;font-size:12px}
+  .roster-item .unit-points{color:var(--amber);font-weight:600;font-size:12px;min-width:52px;text-align:right}
   .roster-item .remove{background:transparent;border:1px solid #666;color:#ff8a80;border-radius:4px;cursor:pointer;width:24px;height:24px;font-size:15px;line-height:1}
   .roster-item .remove:hover{background:#5a1e1e}
   .empty-msg{color:var(--muted);font-size:13px;text-align:center;padding:16px 0}
   .roster-summary{border-top:1px solid var(--border);padding-top:10px;font-size:13px;display:flex;flex-direction:column;gap:4px}
   .roster-summary .row{display:flex;justify-content:space-between}
-  .roster-summary .over{color:#ff5252;font-weight:700}
-  .roster-summary .ok{color:#81c784;font-weight:700}
+  .roster-summary .over{color:var(--red-soft);font-weight:700}
+  .roster-summary .ok{color:var(--green-soft);font-weight:700}
   .roster-actions{display:flex;gap:8px;margin-top:10px}
   .roster-actions button{flex:1;padding:9px;border-radius:6px;border:1px solid var(--border);background:var(--panel-2);color:var(--text);cursor:pointer;font-weight:600;font-size:13px}
-  .roster-actions button:hover{background:#3d3d3d}
-  .roster-actions .primary{background:var(--green);border-color:var(--green)}
+  .roster-actions button:hover{filter:brightness(1.1)}
+  .roster-actions .primary{background:var(--green);border-color:var(--green);color:#fff}
   .roster-actions .primary:hover{background:#1b5e20}
-  .roster-actions .danger{background:#b71c1c;border-color:#b71c1c;animation:pulse .8s infinite}
+  .roster-actions .danger{background:#b71c1c;border-color:#b71c1c;color:#fff;animation:pulse .8s infinite}
   .roster-actions .danger:hover{background:#8e0000}
   @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(198,40,40,.6)}50%{box-shadow:0 0 0 6px rgba(198,40,40,0)}}
-  textarea.export{width:100%;margin-top:8px;background:#111;color:#b0bec5;border:1px solid var(--border);border-radius:6px;padding:8px;font-family:monospace;font-size:12px;min-height:120px;resize:vertical}
+  textarea.export{width:100%;margin-top:8px;background:var(--input-bg);color:var(--input-text);border:1px solid var(--border);border-radius:6px;padding:8px;font-family:monospace;font-size:12px;min-height:120px;resize:vertical}
 
-  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px}
+  /* МОДАЛКА */
+  .modal-backdrop{position:fixed;inset:0;background:var(--modal-overlay);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px}
   .modal-backdrop.open{display:flex}
-  .modal{background:var(--panel);border:2px solid var(--accent);border-radius:10px;width:100%;max-width:720px;max-height:92vh;overflow-y:auto;padding:18px 20px 20px;position:relative;box-shadow:0 10px 40px rgba(0,0,0,.6)}
-  .modal-close{position:absolute;top:10px;right:12px;background:transparent;border:none;color:#aaa;font-size:26px;cursor:pointer;line-height:1;padding:4px 8px;border-radius:4px}
-  .modal-close:hover{background:#444;color:#fff}
-  .modal h2{margin:0 0 4px;font-size:22px;color:#fff;padding-right:32px}
+  .modal{background:var(--modal-bg);border:2px solid var(--accent);border-radius:10px;width:100%;max-width:720px;max-height:92vh;overflow-y:auto;padding:18px 20px 20px;position:relative;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+  .modal-close{position:absolute;top:10px;right:12px;background:transparent;border:none;color:var(--muted);font-size:26px;cursor:pointer;line-height:1;padding:4px 8px;border-radius:4px}
+  .modal-close:hover{background:var(--panel-2);color:var(--text-strong)}
+  .modal h2{margin:0 0 4px;font-size:22px;color:var(--text-strong);padding-right:32px}
   .modal .modal-faction{font-size:13px;color:var(--muted);margin-bottom:8px}
-  .modal .modal-price{font-size:18px;color:#ffcc80;font-weight:700;margin-bottom:12px}
+  .modal .modal-price{font-size:18px;color:var(--amber);font-weight:700;margin-bottom:12px}
   .modal .section-title{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin:16px 0 6px;border-bottom:1px solid var(--border);padding-bottom:4px}
   .modal .stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 14px;font-size:14px}
   .modal .stat-grid .lbl{color:var(--muted)}
-  .modal .stat-grid .val{color:#fff;font-weight:600;text-align:right}
+  .modal .stat-grid .val{color:var(--text-strong);font-weight:600;text-align:right}
   .modal .armor-row{display:flex;gap:8px;flex-wrap:wrap;font-size:14px}
   .modal .armor-row span{background:var(--panel-2);border-radius:5px;padding:4px 10px}
-  .modal .armor-row b{color:#ffcc80}
+  .modal .armor-row b{color:var(--amber)}
   .modal .weapon-block{background:var(--panel-2);border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:13px;line-height:1.5}
-  .modal .weapon-block .wname{font-weight:700;color:#fff;margin-bottom:2px}
-  .modal .weapon-block .wstats{color:#ddd;margin-bottom:2px}
+  .modal .weapon-block .wname{font-weight:700;color:var(--text-strong);margin-bottom:2px}
+  .modal .weapon-block .wstats{color:var(--text-dim);margin-bottom:2px}
   .modal .weapon-block .wnotes{color:var(--muted);font-size:12px}
   .modal .weapon-block .wnotes div{margin-top:2px}
   .modal .rule-item{background:var(--panel-2);border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:13px;line-height:1.5}
-  .modal .extra-line{font-size:13px;color:#ddd;margin-bottom:4px}
+  .modal .extra-line{font-size:13px;color:var(--text-dim);margin-bottom:4px}
   .modal .extra-line .lbl{color:var(--muted)}
   .modal-actions{display:flex;gap:10px;margin-top:18px;padding-top:12px;border-top:1px solid var(--border);flex-wrap:wrap}
   .modal-actions button{padding:10px 16px;border-radius:6px;border:none;cursor:pointer;font-weight:700;font-size:14px}
   .modal-actions .add{background:var(--accent);color:#fff}
   .modal-actions .add:hover{background:var(--accent-2)}
-  .modal-actions .add.disabled{background:#444;cursor:not-allowed;opacity:.6}
+  .modal-actions .add.disabled{background:#555;cursor:not-allowed;opacity:.6}
   .modal-actions .remove-btn{background:#555;color:#fff}
   .modal-actions .remove-btn:hover{background:#666}
   .modal-actions .remove-all{background:#7a1f1f;color:#fff}
   .modal-actions .remove-all:hover{background:#5a1515}
+
+  /* НАСТРОЙКИ */
+  .settings-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}
+  .settings-row:last-child{border-bottom:none}
+  .settings-row input[type="checkbox"]{width:20px;height:20px;margin-top:2px;cursor:pointer;accent-color:var(--accent)}
+  .settings-row .settings-label{font-weight:600;color:var(--text-strong);margin-bottom:2px}
+  .settings-row .settings-desc{font-size:12px;color:var(--muted);line-height:1.4}
+  .settings-actions{display:flex;gap:10px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);flex-wrap:wrap}
+  .settings-actions button{padding:10px 16px;border-radius:6px;border:1px solid var(--border);background:var(--panel-2);color:var(--text);cursor:pointer;font-weight:600;font-size:13px}
+  .settings-actions button:hover{filter:brightness(1.1)}
+  .settings-actions .primary{background:var(--green);border-color:var(--green);color:#fff}
+
+  /* КАСТОМНЫЙ CONFIRM */
+  .confirm-actions{display:flex;gap:10px;margin-top:18px;padding-top:12px;border-top:1px solid var(--border);flex-wrap:wrap;justify-content:flex-end}
+  .confirm-actions button{padding:10px 16px;border-radius:6px;border:none;cursor:pointer;font-weight:700;font-size:14px}
+  .confirm-actions .ok{background:#b71c1c;color:#fff}
+  .confirm-actions .ok:hover{background:#8e0000}
+  .confirm-actions .cancel{background:var(--panel-2);color:var(--text);border:1px solid var(--border)}
+  .confirm-actions .cancel:hover{filter:brightness(1.1)}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>ДОРОГА НА <span>БЕРЛИН</span> — Army Builder v14</h1>
+  <h1>ДОРОГА НА <span>БЕРЛИН</span> — Army Builder v15</h1>
   <div class="total-box">
     <span>Очки: <b id="totalPoints">0</b></span>
     <span>Остаток: <span id="headerRemain" class="remain ok">500</span></span>
     <span>Лимит:
       <input type="number" id="limitInput" class="limit-input" value="500" min="0" step="10">
     </span>
+    <button id="btnSettings" class="settings-btn" title="Настройки">⚙</button>
   </div>
 </header>
 
 <main>
   <section>
-    <div class="faction-tabs">
+    <div class="faction-tabs" id="factionTabs">
       <button data-faction="ussr" class="active"><span class="flag-red"></span> СССР</button>
       <button data-faction="germany">🇩🇪 Германия</button>
       <button data-faction="usa">🇺🇸 США</button>
@@ -163,6 +201,7 @@
   </aside>
 </main>
 
+<!-- МОДАЛКА (универсальная: карточка / настройки / confirm) -->
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal" id="modal">
     <button class="modal-close" id="modalClose" title="Закрыть">×</button>
@@ -172,7 +211,7 @@
 
 <script>
 /* =========================================================
-   1) КОНСТАНТЫ ЦЕНЫ
+   1) КОНСТАНТЫ И ФУНКЦИИ ЦЕНЫ
    ========================================================= */
 const BASE_Q = 7;
 const MIN_Q = 4;
@@ -182,7 +221,7 @@ function priceForQualification(baseCost, q) {
 function qualificationOptions() { return [4, 5, 6, 7, 8, 9]; }
 
 /* =========================================================
-   2) FALLBACK: тестовые юниты, если units.json не загрузится
+   2) FALLBACK
    ========================================================= */
 const DEFAULT_UNITS = {
   ussr: [], germany: [], usa: [], hungary: [],
@@ -203,14 +242,89 @@ const DEFAULT_UNITS = {
 };
 
 /* =========================================================
-   3) СОСТОЯНИЕ
+   3) НАСТРОЙКИ + LOCALSTORAGE
    ========================================================= */
-let UNITS = {};
+const LS_KEYS = {
+  settings: "rtb_settings",
+  roster:   "rtb_roster",
+  limit:    "rtb_limit",
+  faction:  "rtb_faction"
+};
+
+const DEFAULT_SETTINGS = { mix: false, dark: true };
+let settings = Object.assign({}, DEFAULT_SETTINGS);
+let pointLimit = 500;
 let currentFaction = "ussr";
 let roster = {};
-let pointLimit = 500;
 let rosterCounter = 0;
 
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem(LS_KEYS.settings);
+    if (raw) settings = Object.assign({}, DEFAULT_SETTINGS, JSON.parse(raw));
+  } catch (e) { console.warn("Не удалось прочитать настройки", e); }
+  applyTheme();
+}
+function saveSettings() {
+  try { localStorage.setItem(LS_KEYS.settings, JSON.stringify(settings)); }
+  catch (e) { console.warn("Не удалось сохранить настройки", e); }
+}
+function applyTheme() {
+  document.body.classList.toggle("light", !settings.dark);
+}
+
+function loadLimit() {
+  try {
+    const raw = localStorage.getItem(LS_KEYS.limit);
+    if (raw !== null) {
+      const n = parseInt(raw, 10);
+      if (!isNaN(n) && n >= 0) pointLimit = n;
+    }
+  } catch (e) { console.warn("Не удалось прочитать лимит", e); }
+}
+function saveLimit() {
+  try { localStorage.setItem(LS_KEYS.limit, String(pointLimit)); }
+  catch (e) { console.warn("Не удалось сохранить лимит", e); }
+}
+
+function loadFaction() {
+  try {
+    const f = localStorage.getItem(LS_KEYS.faction);
+    if (f && ["ussr","germany","usa","hungary"].includes(f)) currentFaction = f;
+  } catch (e) { console.warn("Не удалось прочитать фракцию", e); }
+}
+function saveFaction() {
+  try { localStorage.setItem(LS_KEYS.faction, currentFaction); }
+  catch (e) { console.warn("Не удалось сохранить фракцию", e); }
+}
+
+function loadRoster() {
+  try {
+    const raw = localStorage.getItem(LS_KEYS.roster);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        roster = parsed;
+        // восстановить rosterCounter, чтобы не перезаписывать ключи
+        let maxN = -1;
+        for (const k in roster) {
+          const m = /^r(\d+)$/.exec(k);
+          if (m) maxN = Math.max(maxN, parseInt(m[1], 10));
+        }
+        rosterCounter = maxN + 1;
+      }
+    }
+  } catch (e) { console.warn("Не удалось прочитать ростер", e); }
+}
+function saveRoster() {
+  try { localStorage.setItem(LS_KEYS.roster, JSON.stringify(roster)); }
+  catch (e) { console.warn("Не удалось сохранить ростер", e); }
+}
+
+/* =========================================================
+   4) UNITS И ВСПОМОГАТЕЛЬНЫЕ
+   ========================================================= */
+let UNITS = {};
 const els = {
   list: document.getElementById("unitList"),
   rosterList: document.getElementById("rosterList"),
@@ -224,12 +338,10 @@ const els = {
   exportArea: document.getElementById("exportArea"),
   modalBackdrop: document.getElementById("modalBackdrop"),
   modalContent: document.getElementById("modalContent"),
-  modalClose: document.getElementById("modalClose")
+  modalClose: document.getElementById("modalClose"),
+  factionTabs: document.getElementById("factionTabs")
 };
 
-/* =========================================================
-   4) ВСПОМОГАТЕЛЬНЫЕ
-   ========================================================= */
 function getAllUnits() {
   const all = [];
   for (const f in UNITS) for (const u of UNITS[f]) all.push(Object.assign({}, u, { faction: f }));
@@ -271,7 +383,17 @@ function shortDesc(unit) {
 }
 
 /* =========================================================
-   5) МОДАЛЬНАЯ КАРТОЧКА
+   5) ВКЛАДКИ ФРАКЦИЙ: ВИДИМОСТЬ
+   ========================================================= */
+function updateFactionTabsVisibility() {
+  const isEmpty = getRosterUnitCount() === 0;
+  const shouldShow = settings.mix || isEmpty;
+  if (shouldShow) els.factionTabs.classList.remove("hidden");
+  else els.factionTabs.classList.add("hidden");
+}
+
+/* =========================================================
+   6) МОДАЛЬНАЯ КАРТОЧКА
    ========================================================= */
 function openUnitCard(unitId, fromRosterKey) {
   const unit = getUnitById(unitId);
@@ -291,7 +413,7 @@ function openUnitCard(unitId, fromRosterKey) {
 
   let html = '<h2>' + unit.name + '</h2>';
   html += '<div class="modal-faction">' + fname + '</div>';
-  html += '<div class="modal-price">' + price + ' очк.' + (unit.noQual ? '' : ' <small style="color:#9aa0a6">(★' + q + ')</small>') + '</div>';
+  html += '<div class="modal-price">' + price + ' очк.' + (unit.noQual ? '' : ' <small style="color:var(--muted)">(★' + q + ')</small>') + '</div>';
   if (fromRoster) html += '<div class="extra-line"><span class="lbl">В ростере:</span> ×' + entry.count + '</div>';
 
   if (unit.extra && unit.extra.length) {
@@ -362,16 +484,135 @@ function openUnitCard(unitId, fromRosterKey) {
     });
     document.getElementById("modalRemoveAll").addEventListener("click", () => {
       delete roster[fromRosterKey];
+      saveRoster();
       renderRoster();
       closeModal();
     });
   }
   els.modalBackdrop.classList.add("open");
 }
-function closeModal() { els.modalBackdrop.classList.remove("open"); }
 
 /* =========================================================
-   6) РЕНДЕР КАТАЛОГА
+   7) МОДАЛКА НАСТРОЕК
+   ========================================================= */
+function openSettings() {
+  let html = '<h2>⚙ Настройки</h2>';
+  html += '<div class="settings-row">';
+  html += '<input type="checkbox" id="chkMix"' + (settings.mix ? ' checked' : '') + '>';
+  html += '<label for="chkMix"><div class="settings-label">Разрешить смешение фракций</div>';
+  html += '<div class="settings-desc">Если выключено — вкладки фракций видны, только пока ростер пуст. После добавления первого юнита они скрываются. Если включено — вкладки видны всегда, можно смешивать.</div></label>';
+  html += '</div>';
+  html += '<div class="settings-row">';
+  html += '<input type="checkbox" id="chkDark"' + (settings.dark ? ' checked' : '') + '>';
+  html += '<label for="chkDark"><div class="settings-label">Тёмная тема</div>';
+  html += '<div class="settings-desc">По умолчанию включена. Снимите галочку для светлой темы.</div></label>';
+  html += '</div>';
+  html += '<div class="settings-actions">';
+  html += '<button id="btnResetRoster">Сбросить сохранённый ростер</button>';
+  html += '<button class="primary" id="btnSettingsClose">Готово</button>';
+  html += '</div>';
+
+  els.modalContent.innerHTML = html;
+
+  const chkMix = document.getElementById("chkMix");
+  const chkDark = document.getElementById("chkDark");
+  const btnReset = document.getElementById("btnResetRoster");
+  const btnClose = document.getElementById("btnSettingsClose");
+
+  chkDark.addEventListener("change", () => {
+    settings.dark = chkDark.checked;
+    applyTheme();
+    saveSettings();
+  });
+
+  chkMix.addEventListener("change", () => {
+    if (chkMix.checked) {
+      settings.mix = true;
+      saveSettings();
+      updateFactionTabsVisibility();
+    } else {
+      // Пытаемся выключить. Проверяем: есть ли в ростере смешанные фракции?
+      const factions = new Set();
+      for (const k in roster) {
+        const u = getUnitById(roster[k].unitId);
+        if (u) factions.add(u.faction);
+      }
+      if (factions.size > 1) {
+        // Показываем кастомный confirm
+        openConfirm(
+          "В ростере есть юниты из разных фракций. Очистить ростер и вернуться к режиму одной фракции?",
+          () => {
+            // OK — очищаем ростер, выключаем mix
+            settings.mix = false;
+            saveSettings();
+            roster = {};
+            saveRoster();
+            chkMix.checked = false;
+            renderRoster();
+            updateFactionTabsVisibility();
+          },
+          () => {
+            // Отмена — откатываем чекбокс
+            chkMix.checked = true;
+          }
+        );
+      } else {
+        settings.mix = false;
+        saveSettings();
+        updateFactionTabsVisibility();
+      }
+    }
+  });
+
+  btnReset.addEventListener("click", () => {
+    openConfirm(
+      "Удалить сохранённый ростер из памяти устройства? Текущий ростер останется, но при следующей перезагрузке будет пустым.",
+      () => {
+        try { localStorage.removeItem(LS_KEYS.roster); } catch (e) {}
+        closeModal();
+      },
+      null
+    );
+  });
+
+  btnClose.addEventListener("click", closeModal);
+  els.modalBackdrop.classList.add("open");
+}
+
+/* =========================================================
+   8) КАСТОМНЫЙ CONFIRM
+   ========================================================= */
+let _confirmCb = null;
+function openConfirm(message, onOk, onCancel) {
+  let html = '<h2>Подтверждение</h2>';
+  html += '<div style="font-size:14px;line-height:1.5;margin-top:8px">' + message + '</div>';
+  html += '<div class="confirm-actions">';
+  html += '<button class="cancel" id="confirmCancel">Отмена</button>';
+  html += '<button class="ok" id="confirmOk">Очистить</button>';
+  html += '</div>';
+  els.modalContent.innerHTML = html;
+
+  _confirmCb = { onOk, onCancel };
+  document.getElementById("confirmOk").addEventListener("click", () => {
+    const cb = _confirmCb; _confirmCb = null;
+    closeModal();
+    if (cb && cb.onOk) cb.onOk();
+  });
+  document.getElementById("confirmCancel").addEventListener("click", () => {
+    const cb = _confirmCb; _confirmCb = null;
+    closeModal();
+    if (cb && cb.onCancel) cb.onCancel();
+  });
+  els.modalBackdrop.classList.add("open");
+}
+
+function closeModal() {
+  els.modalBackdrop.classList.remove("open");
+  _confirmCb = null;
+}
+
+/* =========================================================
+   9) РЕНДЕР КАТАЛОГА
    ========================================================= */
 function renderCatalog() {
   els.list.innerHTML = "";
@@ -438,7 +679,7 @@ function renderCatalog() {
 }
 
 /* =========================================================
-   7) СИНХРОНИЗАЦИЯ КВАЛИФИКАЦИЙ (макс ≤ 7)
+   10) СИНХРОНИЗАЦИЯ КВАЛИФИКАЦИЙ
    ========================================================= */
 function syncCatalogQualifications() {
   const remaining = pointLimit - getRosterPoints();
@@ -462,7 +703,7 @@ function syncCatalogQualifications() {
 }
 
 /* =========================================================
-   8) ДОБАВЛЕНИЕ
+   11) ДОБАВЛЕНИЕ
    ========================================================= */
 function addUnitSmart(unitId, select) {
   const unit = getUnitById(unitId);
@@ -490,7 +731,7 @@ function addUnitSmart(unitId, select) {
 }
 
 /* =========================================================
-   9) ОБНОВЛЕНИЕ КНОПОК
+   12) ОБНОВЛЕНИЕ КНОПОК
    ========================================================= */
 function updateButtons() {
   const rows = els.list.querySelectorAll(".unit-row");
@@ -529,7 +770,7 @@ function updateButtons() {
 }
 
 /* =========================================================
-   10) РЕНДЕР РОСТЕРА (квалификация ↓)
+   13) РЕНДЕР РОСТЕРА
    ========================================================= */
 function renderRoster() {
   const keys = Object.keys(roster).sort((ka, kb) => {
@@ -552,7 +793,7 @@ function renderRoster() {
       const unit = getUnitById(entry.unitId);
       if (!unit) return;
       const price = unitPrice(unit, entry.q);
-      const qLabel = unit.noQual ? "" : ' <small style="color:#9aa0a6">(★' + entry.q + ')</small>';
+      const qLabel = unit.noQual ? "" : ' <small style="color:var(--muted)">(★' + entry.q + ')</small>';
       const item = document.createElement("div");
       item.className = "roster-item";
       item.innerHTML = '<span class="name">' + unit.name + qLabel + '</span>' +
@@ -586,10 +827,11 @@ function renderRoster() {
 
   syncCatalogQualifications();
   updateButtons();
+  updateFactionTabsVisibility();
 }
 
 /* =========================================================
-   11) ДЕЙСТВИЯ
+   14) ДЕЙСТВИЯ
    ========================================================= */
 function addUnit(unitId, q) {
   const unit = getUnitById(unitId);
@@ -607,30 +849,33 @@ function addUnit(unitId, q) {
     const key = "r" + (rosterCounter++);
     roster[key] = { unitId: unitId, q: q, count: 1 };
   }
+  saveRoster();
   renderRoster();
 }
 function removeUnit(key) {
   if (!roster[key]) return;
   roster[key].count--;
   if (roster[key].count <= 0) delete roster[key];
+  saveRoster();
   renderRoster();
 }
 
 /* =========================================================
-   12) ОЧИСТИТЬ
+   15) ОЧИСТИТЬ
    ========================================================= */
 function clearRoster() {
   roster = {};
+  saveRoster();
   if (els.exportArea) els.exportArea.value = "";
   renderRoster();
 }
 
 /* =========================================================
-   13) ЭКСПОРТ
+   16) ЭКСПОРТ
    ========================================================= */
 function exportRoster() {
   const lines = [];
-  lines.push("=== ДОРОГА НА БЕРЛИН — РОСТЕР (v14) ===");
+  lines.push("=== ДОРОГА НА БЕРЛИН — РОСТЕР (v15) ===");
   lines.push("Лимит очков: " + pointLimit);
   lines.push("Использовано: " + getRosterPoints());
   lines.push("Остаток: " + (pointLimit - getRosterPoints()));
@@ -659,7 +904,7 @@ function exportRoster() {
 }
 
 /* =========================================================
-   14) МОДАЛКА: ЗАКРЫТИЕ
+   17) ЗАКРЫТИЕ МОДАЛКИ
    ========================================================= */
 if (els.modalClose) els.modalClose.addEventListener("click", closeModal);
 if (els.modalBackdrop) els.modalBackdrop.addEventListener("click", (e) => {
@@ -668,16 +913,14 @@ if (els.modalBackdrop) els.modalBackdrop.addEventListener("click", (e) => {
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
 
 /* =========================================================
-   15) ЗАГРУЗКА units.json (с fallback)
+   18) ЗАГРУЗКА units.json
    ========================================================= */
 async function loadUnits() {
   let data = null;
   try {
     const res = await fetch("units.json", { cache: "no-store" });
     if (res.ok) data = await res.json();
-  } catch (e) {
-    console.warn("units.json не загружен, использую DEFAULT_UNITS", e);
-  }
+  } catch (e) { console.warn("units.json не загружен, использую DEFAULT_UNITS", e); }
   if (!data) data = DEFAULT_UNITS;
 
   const common = data.common || [];
@@ -701,30 +944,44 @@ async function loadUnits() {
 }
 
 /* =========================================================
-   16) ИНИЦИАЛИЗАЦИЯ + ДВУХШАГОВАЯ ОЧИСТКА
+   19) ИНИЦИАЛИЗАЦИЯ
    ========================================================= */
+loadSettings();
+loadLimit();
+loadFaction();
+loadRoster();
+
+if (els.limitInput) els.limitInput.value = pointLimit;
+if (els.limitInput) {
+  els.limitInput.addEventListener("input", (e) => {
+    const val = parseInt(e.target.value, 10);
+    pointLimit = isNaN(val) || val < 0 ? 0 : val;
+    saveLimit();
+    renderRoster();
+  });
+}
+
 const factionButtons = document.querySelectorAll(".faction-tabs button");
 factionButtons.forEach(btn => {
+  if (btn.dataset.faction === currentFaction) {
+    factionButtons.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+  }
   btn.addEventListener("click", () => {
     factionButtons.forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     currentFaction = btn.dataset.faction;
+    saveFaction();
     resetClearButton();
     renderCatalog();
   });
 });
 
-if (els.limitInput) {
-  els.limitInput.addEventListener("input", (e) => {
-    const val = parseInt(e.target.value, 10);
-    pointLimit = isNaN(val) || val < 0 ? 0 : val;
-    renderRoster();
-  });
-}
-
 const btnClear = document.getElementById("btnClear");
 const btnExport = document.getElementById("btnExport");
+const btnSettings = document.getElementById("btnSettings");
 if (btnExport) btnExport.addEventListener("click", () => { resetClearButton(); exportRoster(); });
+if (btnSettings) btnSettings.addEventListener("click", openSettings);
 
 let clearConfirmTimer = null;
 let clearPending = false;
@@ -758,9 +1015,6 @@ document.addEventListener("click", (e) => {
   resetClearButton();
 }, true);
 
-/* =========================================================
-   17) СТАРТ
-   ========================================================= */
 loadUnits();
 </script>
 </body>
