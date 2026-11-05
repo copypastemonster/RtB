@@ -1,24 +1,752 @@
-// 1) Константы
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RtB 0.3.9 — Army Builder</title>
+<style>
+  :root {
+    --bg:#1a1a1a; --panel:#262626; --panel-2:#303030; --text:#e8e8e8;
+    --muted:#9aa0a6; --accent:#c62828; --accent-2:#8e1f1f; --green:#2e7d32; --border:#444;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+  header{background:linear-gradient(90deg,#151515,#2b2b2b);border-bottom:3px solid var(--accent);padding:14px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  header h1{margin:0;font-size:20px;letter-spacing:1px}
+  header h1 span{color:var(--accent)}
+  .total-box{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:15px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  .total-box b{color:#ffcc80;font-size:19px}
+  .total-box .remain{font-weight:700}
+  .total-box .remain.ok{color:#81c784}
+  .total-box .remain.over{color:#ff5252}
+  .limit-input{width:76px;background:var(--panel-2);border:1px solid var(--border);color:var(--text);padding:4px 6px;border-radius:4px}
+  main{display:grid;grid-template-columns:1fr 400px;gap:14px;padding:14px;max-width:1500px;margin:0 auto}
+  @media(max-width:1050px){main{grid-template-columns:1fr}}
+  .faction-tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+  .faction-tabs button{flex:1 0 auto;padding:9px 10px;background:var(--panel);border:2px solid var(--border);color:var(--text);border-radius:6px;cursor:pointer;font-size:14px;font-weight:600;transition:.15s;min-width:90px}
+  .faction-tabs button:hover{background:#333}
+  .faction-tabs button.active[data-faction="ussr"]{border-color:#c62828;background:#3a1c1c}
+  .faction-tabs button.active[data-faction="germany"]{border-color:#607d8b;background:#22303a}
+  .faction-tabs button.active[data-faction="usa"]{border-color:#2e7d32;background:#1e3320}
+  .faction-tabs button.active[data-faction="hungary"]{border-color:#8d6e63;background:#332a25}
+  .flag-red{display:inline-block;width:18px;height:12px;background:#cc0000;border:1px solid #8b0000;border-radius:2px;vertical-align:middle;margin-right:4px}
+  .unit-list{display:flex;flex-direction:column;gap:6px;max-height:calc(100vh - 160px);overflow-y:auto;padding-right:4px}
+  .unit-row{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:8px 10px;display:grid;grid-template-columns:1fr auto auto auto;gap:10px;align-items:center;cursor:pointer;transition:.12s}
+  .unit-row:hover{border-color:#777;background:#2d2d2d}
+  .unit-row .info{min-width:0}
+  .unit-row .name{font-weight:700;font-size:14px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .unit-row .desc{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .unit-row .cost{color:#ffcc80;font-weight:700;white-space:nowrap;font-size:14px;min-width:64px;text-align:right}
+  .unit-row select.q{background:var(--panel-2);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:4px 6px;font-size:13px;cursor:pointer}
+  .unit-row select.q option:disabled{color:#555}
+  .unit-row .noqual{color:var(--muted);font-size:13px;min-width:50px;text-align:center}
+  .unit-row button{padding:6px 12px;background:var(--accent);border:none;color:#fff;border-radius:5px;cursor:pointer;font-weight:600;font-size:13px;white-space:nowrap}
+  .unit-row button:hover{background:var(--accent-2)}
+  .unit-row button.disabled{background:#444;cursor:not-allowed;opacity:.6}
+  aside{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px;height:fit-content;position:sticky;top:14px}
+  aside h2{margin:0 0 10px;font-size:17px;border-bottom:2px solid var(--accent);padding-bottom:6px}
+  .roster-list{display:flex;flex-direction:column;gap:6px;max-height:55vh;overflow-y:auto;margin-bottom:10px}
+  .roster-item{background:var(--panel-2);border-radius:5px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;cursor:pointer;transition:.12s}
+  .roster-item:hover{background:#3a3a3a}
+  .roster-item .name{flex:1}
+  .roster-item .qty{background:#555;border-radius:4px;padding:1px 8px;font-size:12px}
+  .roster-item .unit-points{color:#ffcc80;font-weight:600;font-size:12px;min-width:52px;text-align:right}
+  .roster-item .remove{background:transparent;border:1px solid #666;color:#ff8a80;border-radius:4px;cursor:pointer;width:24px;height:24px;font-size:15px;line-height:1}
+  .roster-item .remove:hover{background:#5a1e1e}
+  .empty-msg{color:var(--muted);font-size:13px;text-align:center;padding:16px 0}
+  .roster-summary{border-top:1px solid var(--border);padding-top:10px;font-size:13px;display:flex;flex-direction:column;gap:4px}
+  .roster-summary .row{display:flex;justify-content:space-between}
+  .roster-summary .over{color:#ff5252;font-weight:700}
+  .roster-summary .ok{color:#81c784;font-weight:700}
+  .roster-actions{display:flex;gap:8px;margin-top:10px}
+  .roster-actions button{flex:1;padding:9px;border-radius:6px;border:1px solid var(--border);background:var(--panel-2);color:var(--text);cursor:pointer;font-weight:600;font-size:13px}
+  .roster-actions button:hover{background:#3d3d3d}
+  .roster-actions .primary{background:var(--green);border-color:var(--green)}
+  .roster-actions .primary:hover{background:#1b5e20}
+  .roster-actions .danger{background:#b71c1c;border-color:#b71c1c;animation:pulse .8s infinite}
+  .roster-actions .danger:hover{background:#8e0000}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(198,40,40,.6)}50%{box-shadow:0 0 0 6px rgba(198,40,40,0)}}
+  textarea.export{width:100%;margin-top:8px;background:#111;color:#b0bec5;border:1px solid var(--border);border-radius:6px;padding:8px;font-family:monospace;font-size:12px;min-height:120px;resize:vertical}
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px}
+  .modal-backdrop.open{display:flex}
+  .modal{background:var(--panel);border:2px solid var(--accent);border-radius:10px;width:100%;max-width:720px;max-height:92vh;overflow-y:auto;padding:18px 20px 20px;position:relative;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+  .modal-close{position:absolute;top:10px;right:12px;background:transparent;border:none;color:#aaa;font-size:26px;cursor:pointer;line-height:1;padding:4px 8px;border-radius:4px}
+  .modal-close:hover{background:#444;color:#fff}
+  .modal h2{margin:0 0 4px;font-size:22px;color:#fff;padding-right:32px}
+  .modal .modal-faction{font-size:13px;color:var(--muted);margin-bottom:8px}
+  .modal .modal-price{font-size:18px;color:#ffcc80;font-weight:700;margin-bottom:12px}
+  .modal .section-title{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin:16px 0 6px;border-bottom:1px solid var(--border);padding-bottom:4px}
+  .modal .stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 14px;font-size:14px}
+  .modal .stat-grid .lbl{color:var(--muted)}
+  .modal .stat-grid .val{color:#fff;font-weight:600;text-align:right}
+  .modal .armor-row{display:flex;gap:8px;flex-wrap:wrap;font-size:14px}
+  .modal .armor-row span{background:var(--panel-2);border-radius:5px;padding:4px 10px}
+  .modal .armor-row b{color:#ffcc80}
+  .modal .weapon-block{background:var(--panel-2);border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:13px;line-height:1.5}
+  .modal .weapon-block .wname{font-weight:700;color:#fff;margin-bottom:2px}
+  .modal .weapon-block .wstats{color:#ddd;margin-bottom:2px}
+  .modal .weapon-block .wnotes{color:var(--muted);font-size:12px}
+  .modal .weapon-block .wnotes div{margin-top:2px}
+  .modal .rule-item{background:var(--panel-2);border-radius:6px;padding:8px 10px;margin-bottom:6px;font-size:13px;line-height:1.5}
+  .modal .extra-line{font-size:13px;color:#ddd;margin-bottom:4px}
+  .modal .extra-line .lbl{color:var(--muted)}
+  .modal-actions{display:flex;gap:10px;margin-top:18px;padding-top:12px;border-top:1px solid var(--border);flex-wrap:wrap}
+  .modal-actions button{padding:10px 16px;border-radius:6px;border:none;cursor:pointer;font-weight:700;font-size:14px}
+  .modal-actions .add{background:var(--accent);color:#fff}
+  .modal-actions .add:hover{background:var(--accent-2)}
+  .modal-actions .add.disabled{background:#444;cursor:not-allowed;opacity:.6}
+  .modal-actions .remove-btn{background:#555;color:#fff}
+  .modal-actions .remove-btn:hover{background:#666}
+  .modal-actions .remove-all{background:#7a1f1f;color:#fff}
+  .modal-actions .remove-all:hover{background:#5a1515}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ДОРОГА НА <span>БЕРЛИН</span> — Army Builder</h1>
+  <div class="total-box">
+    <span>Очки: <b id="totalPoints">0</b></span>
+    <span>Остаток: <span id="headerRemain" class="remain ok">500</span></span>
+    <span>Лимит:
+      <input type="number" id="limitInput" class="limit-input" value="500" min="0" step="10">
+    </span>
+  </div>
+</header>
+
+<main>
+  <section>
+    <div class="faction-tabs">
+      <button data-faction="ussr" class="active"><span class="flag-red"></span> СССР</button>
+      <button data-faction="germany">🇩🇪 Германия</button>
+      <button data-faction="usa">🇺🇸 США</button>
+      <button data-faction="hungary">🇭🇺 Венгрия</button>
+    </div>
+    <div class="unit-list" id="unitList"></div>
+  </section>
+
+  <aside>
+    <h2>Ваш ростер</h2>
+    <div class="roster-list" id="rosterList">
+      <div class="empty-msg">Ростер пуст. Добавьте юнитов слева.</div>
+    </div>
+    <div class="roster-summary">
+      <div class="row"><span>Всего очков:</span><span id="sumPoints">0</span></div>
+      <div class="row"><span>Лимит:</span><span id="sumLimit">500</span></div>
+      <div class="row"><span>Остаток:</span><span id="sumRemain" class="ok">500</span></div>
+      <div class="row"><span>Юнитов:</span><span id="sumUnits">0</span></div>
+    </div>
+    <div class="roster-actions">
+      <button id="btnExport" class="primary">📋 Экспорт</button>
+      <button id="btnClear">🗑 Очистить</button>
+    </div>
+    <textarea class="export" id="exportArea" placeholder="Текст ростера появится здесь..." readonly></textarea>
+  </aside>
+</main>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" id="modal">
+    <button class="modal-close" id="modalClose" title="Закрыть">×</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   1) КОНСТАНТЫ ЦЕНЫ
+   ========================================================= */
 const BASE_Q = 7;
 const MIN_Q = 4;
-function priceForQualification(baseCost, q) { ... }
-function qualificationOptions() { ... }
+function priceForQualification(baseCost, q) {
+  return Math.max(1, Math.round(baseCost * (1 + 0.10 * (q - BASE_Q))));
+}
+function qualificationOptions() { return [4, 5, 6, 7, 8, 9]; }
 
-// 2) DEFAULT_UNITS (fallback, те же данные, что в units.json)
-const DEFAULT_UNITS = { ussr: [...], germany: [...], usa: [...], hungary: [...], common: [...] };
+/* =========================================================
+   2) FALLBACK: тестовые юниты, если units.json не загрузится.
+   Сразу видно: testunit1/2/3 = «данные не подгрузились».
+   ========================================================= */
+const DEFAULT_UNITS = {
+  ussr: [],
+  germany: [],
+  usa: [],
+  hungary: [],
+  common: [
+    { key:"testunit1", name:"TEST UNIT 1 (fallback)", cost:10, qual:7, speed:"10 / 5",
+      armor:{front:1,side:1,rear:1,roof:0,bottom:0},
+      weapons:[{name:"Тестовое орудие", stats:"Атаки: 1, Дальность: 30 см, ББ: 1, Арка: 360°", notes:[]}],
+      rules:["Это тестовый юнит из DEFAULT_UNITS. Значит units.json не загрузился."] },
+    { key:"testunit2", name:"TEST UNIT 2 (fallback)", cost:20, qual:7, speed:"10 / 5",
+      armor:{front:2,side:1,rear:1,roof:0,bottom:0},
+      weapons:[{name:"Тестовое орудие", stats:"Атаки: 1, Дальность: 30 см, ББ: 1, Арка: 360°", notes:[]}],
+      rules:["Это тестовый юнит из DEFAULT_UNITS. Значит units.json не загрузился."] },
+    { key:"testunit3", name:"TEST UNIT 3 (fallback)", cost:30, qual:7, speed:"10 / 5",
+      armor:{front:3,side:1,rear:1,roof:0,bottom:0},
+      weapons:[{name:"Тестовое орудие", stats:"Атаки: 1, Дальность: 30 см, ББ: 1, Арка: 360°", notes:[]}],
+      rules:["Это тестовый юнит из DEFAULT_UNITS. Значит units.json не загрузился."] }
+  ]
+};
 
-// 3) Состояние
+/* =========================================================
+   3) СОСТОЯНИЕ
+   ========================================================= */
 let UNITS = {};
 let currentFaction = "ussr";
 let roster = {};
 let pointLimit = 500;
 let rosterCounter = 0;
 
-// 4) els (getElementById)
-const els = { ... };
+const els = {
+  list: document.getElementById("unitList"),
+  rosterList: document.getElementById("rosterList"),
+  totalPoints: document.getElementById("totalPoints"),
+  headerRemain: document.getElementById("headerRemain"),
+  limitInput: document.getElementById("limitInput"),
+  sumPoints: document.getElementById("sumPoints"),
+  sumLimit: document.getElementById("sumLimit"),
+  sumRemain: document.getElementById("sumRemain"),
+  sumUnits: document.getElementById("sumUnits"),
+  exportArea: document.getElementById("exportArea"),
+  modalBackdrop: document.getElementById("modalBackdrop"),
+  modalContent: document.getElementById("modalContent"),
+  modalClose: document.getElementById("modalClose")
+};
 
-// 5) Вспомогательные функции (getUnitById, unitPrice, getRosterPoints, ...)
-// 6) renderCatalog, renderRoster, openUnitCard, syncCatalogQualifications, addUnitSmart, updateButtons, ...
-// 7) loadUnits (async) — объявлена, но НЕ вызвана
-// 8) Инициализация: обработчики кнопок, вкладок, очистки
-// 9) loadUnits(); — вызываем в самом конце
+/* =========================================================
+   4) ВСПОМОГАТЕЛЬНЫЕ
+   ========================================================= */
+function getAllUnits() {
+  const all = [];
+  for (const f in UNITS) for (const u of UNITS[f]) all.push(Object.assign({}, u, { faction: f }));
+  return all;
+}
+function getUnitById(id) { return getAllUnits().find(u => u.id === id); }
+function unitPrice(unit, q) { return unit.noQual ? unit.cost : priceForQualification(unit.cost, q); }
+
+function getRosterPoints() {
+  let total = 0;
+  for (const key in roster) {
+    const entry = roster[key];
+    const unit = getUnitById(entry.unitId);
+    if (unit) total += unitPrice(unit, entry.q) * entry.count;
+  }
+  return total;
+}
+function getRosterUnitCount() {
+  let n = 0;
+  for (const key in roster) n += roster[key].count;
+  return n;
+}
+function maxAffordableQ(unit, remaining) {
+  if (unit.noQual) return BASE_Q;
+  for (let q = BASE_Q; q >= MIN_Q; q--) {
+    if (priceForQualification(unit.cost, q) <= remaining) return q;
+  }
+  return null;
+}
+function shortDesc(unit) {
+  const bits = [];
+  if (unit.qual !== undefined && unit.qual !== null) bits.push("Квал. " + unit.qual);
+  if (unit.speed) bits.push(unit.speed);
+  if (unit.armor) bits.push(unit.armor.front + "/" + unit.armor.side + "/" + unit.armor.rear + "/" + unit.armor.roof + "/" + unit.armor.bottom);
+  if (unit.weapons && unit.weapons.length) bits.push(unit.weapons.map(w => w.name.split("(")[0].trim()).join(" · "));
+  if (unit.rules && unit.rules.length) bits.push(unit.rules[0].split(".")[0] + "...");
+  if (unit.extra) unit.extra.forEach(e => bits.push(e.label + ": " + e.value.split(",")[0]));
+  return bits.join(" · ");
+}
+
+/* =========================================================
+   5) МОДАЛЬНАЯ КАРТОЧКА
+   ========================================================= */
+function openUnitCard(unitId, fromRosterKey) {
+  const unit = getUnitById(unitId);
+  if (!unit) return;
+  const fromRoster = !!fromRosterKey;
+  const entry = fromRoster ? roster[fromRosterKey] : null;
+  let q;
+  if (entry) q = entry.q;
+  else if (unit.noQual) q = BASE_Q;
+  else {
+    const remaining = pointLimit - getRosterPoints();
+    const maxQ = maxAffordableQ(unit, remaining);
+    q = maxQ !== null ? maxQ : MIN_Q;
+  }
+  const price = unitPrice(unit, q);
+  const fname = { ussr:"СССР", germany:"Германия", usa:"США", hungary:"Венгрия" }[unit.faction] || unit.faction;
+
+  let html = '<h2>' + unit.name + '</h2>';
+  html += '<div class="modal-faction">' + fname + '</div>';
+  html += '<div class="modal-price">' + price + ' очк.' + (unit.noQual ? '' : ' <small style="color:#9aa0a6">(★' + q + ')</small>') + '</div>';
+  if (fromRoster) html += '<div class="extra-line"><span class="lbl">В ростере:</span> ×' + entry.count + '</div>';
+
+  if (unit.extra && unit.extra.length) {
+    html += '<div class="section-title">Общие сведения</div>';
+    unit.extra.forEach(e => { html += '<div class="extra-line"><span class="lbl">' + e.label + ':</span> ' + e.value + '</div>'; });
+  }
+  if (!unit.noQual && (unit.qual !== undefined || unit.speed)) {
+    html += '<div class="section-title">Характеристики</div><div class="stat-grid">';
+    if (unit.qual !== undefined && unit.qual !== null) html += '<div class="lbl">Квалификация экипажа</div><div class="val">★' + unit.qual + '</div>';
+    if (unit.speed) html += '<div class="lbl">Скорость (база / форсаж)</div><div class="val">' + unit.speed + '</div>';
+    html += '</div>';
+  }
+  if (unit.armor) {
+    html += '<div class="section-title">Броня</div><div class="armor-row">';
+    html += '<span>Лоб <b>' + unit.armor.front + '</b></span>';
+    html += '<span>Борт <b>' + unit.armor.side + '</b></span>';
+    html += '<span>Корма <b>' + unit.armor.rear + '</b></span>';
+    html += '<span>Крыша <b>' + unit.armor.roof + '</b></span>';
+    html += '<span>Днище <b>' + unit.armor.bottom + '</b></span>';
+    html += '</div>';
+  }
+  if (unit.weapons && unit.weapons.length) {
+    html += '<div class="section-title">Вооружение</div>';
+    unit.weapons.forEach(w => {
+      html += '<div class="weapon-block">';
+      html += '<div class="wname">' + w.name + '</div>';
+      if (w.stats) html += '<div class="wstats">' + w.stats + '</div>';
+      if (w.notes && w.notes.length) html += '<div class="wnotes">' + w.notes.map(n => '<div>• ' + n + '</div>').join('') + '</div>';
+      html += '</div>';
+    });
+  }
+  if (unit.rules && unit.rules.length) {
+    html += '<div class="section-title">Специальные правила</div>';
+    unit.rules.forEach(r => { html += '<div class="rule-item">' + r + '</div>'; });
+  }
+
+  html += '<div class="modal-actions">';
+  if (!fromRoster) {
+    html += '<button class="add" id="modalAddBtn">Добавить в ростер</button>';
+  } else {
+    html += '<button class="remove-btn" id="modalRemoveOne">− Удалить один</button>';
+    html += '<button class="remove-all" id="modalRemoveAll">Удалить всё</button>';
+  }
+  html += '</div>';
+
+  els.modalContent.innerHTML = html;
+
+  if (!fromRoster) {
+    const btn = document.getElementById("modalAddBtn");
+    btn.addEventListener("click", () => {
+      const row = els.list.querySelector('.unit-row[data-unit-id="' + unitId + '"]');
+      const select = row ? row.querySelector("select.q") : null;
+      addUnitSmart(unitId, select);
+      closeModal();
+    });
+    const remaining = pointLimit - getRosterPoints();
+    const canAfford = unit.noQual ? (unit.cost <= remaining) : (maxAffordableQ(unit, remaining) !== null);
+    if (!canAfford) {
+      btn.classList.add("disabled");
+      btn.disabled = true;
+      btn.textContent = "Лимит очков";
+    }
+  } else {
+    document.getElementById("modalRemoveOne").addEventListener("click", () => {
+      removeUnit(fromRosterKey);
+      if (roster[fromRosterKey]) openUnitCard(unitId, fromRosterKey);
+      else closeModal();
+    });
+    document.getElementById("modalRemoveAll").addEventListener("click", () => {
+      delete roster[fromRosterKey];
+      renderRoster();
+      closeModal();
+    });
+  }
+  els.modalBackdrop.classList.add("open");
+}
+function closeModal() { els.modalBackdrop.classList.remove("open"); }
+
+/* =========================================================
+   6) РЕНДЕР КАТАЛОГА
+   ========================================================= */
+function renderCatalog() {
+  els.list.innerHTML = "";
+  const units = UNITS[currentFaction] || [];
+  units.forEach(unit => {
+    const row = document.createElement("div");
+    row.className = "unit-row";
+    row.dataset.unitId = unit.id;
+
+    row.innerHTML = '<div class="info"><div class="name">' + unit.name + '</div><div class="desc">' + shortDesc(unit) + '</div></div>';
+
+    let select = null;
+    if (unit.noQual) {
+      const noq = document.createElement("div");
+      noq.className = "noqual";
+      noq.textContent = "—";
+      noq.title = "Квалификация не указана";
+      row.appendChild(noq);
+    } else {
+      select = document.createElement("select");
+      select.className = "q";
+      qualificationOptions().forEach(q => {
+        const opt = document.createElement("option");
+        opt.value = q;
+        opt.textContent = "★" + q;
+        if (q === BASE_Q) opt.selected = true;
+        select.appendChild(opt);
+      });
+      row.appendChild(select);
+    }
+
+    const costEl = document.createElement("div");
+    costEl.className = "cost";
+    costEl.textContent = unit.cost + " очк.";
+    row.appendChild(costEl);
+
+    const btn = document.createElement("button");
+    btn.textContent = "+";
+    row.appendChild(btn);
+
+    row.addEventListener("click", (e) => {
+      if (e.target.closest("button") || e.target.closest("select")) return;
+      openUnitCard(unit.id, null);
+    });
+
+    if (select) {
+      select.addEventListener("change", () => {
+        const remaining = pointLimit - getRosterPoints();
+        const chosen = parseInt(select.value, 10);
+        const maxQ = maxAffordableQ(unit, remaining);
+        if (maxQ !== null && chosen > maxQ) select.value = maxQ;
+        const q = parseInt(select.value, 10);
+        costEl.textContent = priceForQualification(unit.cost, q) + " очк.";
+        updateButtons();
+      });
+    }
+
+    btn.addEventListener("click", () => addUnitSmart(unit.id, select));
+
+    els.list.appendChild(row);
+  });
+  syncCatalogQualifications();
+  updateButtons();
+}
+
+/* =========================================================
+   7) СИНХРОНИЗАЦИЯ КВАЛИФИКАЦИЙ (макс ≤ 7)
+   ========================================================= */
+function syncCatalogQualifications() {
+  const remaining = pointLimit - getRosterPoints();
+  const rows = els.list.querySelectorAll(".unit-row");
+  rows.forEach(row => {
+    const unit = getUnitById(row.dataset.unitId);
+    if (!unit) return;
+    const select = row.querySelector("select.q");
+    const costEl = row.querySelector(".cost");
+    if (!select) {
+      if (costEl) costEl.textContent = unit.cost + " очк.";
+      return;
+    }
+    let q = MIN_Q;
+    for (let cand = BASE_Q; cand >= MIN_Q; cand--) {
+      if (priceForQualification(unit.cost, cand) <= remaining) { q = cand; break; }
+    }
+    select.value = q;
+    costEl.textContent = priceForQualification(unit.cost, q) + " очк.";
+  });
+}
+
+/* =========================================================
+   8) ДОБАВЛЕНИЕ
+   ========================================================= */
+function addUnitSmart(unitId, select) {
+  const unit = getUnitById(unitId);
+  if (!unit) return;
+  const remaining = pointLimit - getRosterPoints();
+
+  if (unit.noQual) {
+    if (unit.cost > remaining) return;
+    addUnit(unitId, BASE_Q);
+    return;
+  }
+
+  const chosen = select ? parseInt(select.value, 10) : BASE_Q;
+  if (priceForQualification(unit.cost, chosen) <= remaining) {
+    addUnit(unitId, chosen);
+    return;
+  }
+  for (let q = chosen - 1; q >= MIN_Q; q--) {
+    if (priceForQualification(unit.cost, q) <= remaining) {
+      if (select) select.value = q;
+      addUnit(unitId, q);
+      return;
+    }
+  }
+}
+
+/* =========================================================
+   9) ОБНОВЛЕНИЕ КНОПОК
+   ========================================================= */
+function updateButtons() {
+  const rows = els.list.querySelectorAll(".unit-row");
+  const remaining = pointLimit - getRosterPoints();
+
+  rows.forEach(row => {
+    const unit = getUnitById(row.dataset.unitId);
+    if (!unit) return;
+    const select = row.querySelector("select.q");
+    const btn = row.querySelector("button");
+
+    if (select) {
+      select.querySelectorAll("option").forEach(opt => {
+        opt.disabled = (priceForQualification(unit.cost, parseInt(opt.value, 10)) > remaining);
+      });
+    }
+
+    let canAfford = false;
+    if (unit.noQual) canAfford = unit.cost <= remaining;
+    else {
+      for (let q = BASE_Q; q >= MIN_Q; q--) {
+        if (priceForQualification(unit.cost, q) <= remaining) { canAfford = true; break; }
+      }
+    }
+
+    if (!canAfford) {
+      btn.classList.add("disabled");
+      btn.textContent = "Лимит";
+      btn.disabled = true;
+    } else {
+      btn.classList.remove("disabled");
+      btn.textContent = "+";
+      btn.disabled = false;
+    }
+  });
+}
+
+/* =========================================================
+   10) РЕНДЕР РОСТЕРА (квалификация ↓)
+   ========================================================= */
+function renderRoster() {
+  const keys = Object.keys(roster).sort((ka, kb) => {
+    const ea = roster[ka], eb = roster[kb];
+    const ua = getUnitById(ea.unitId), ub = getUnitById(eb.unitId);
+    const qa = ua && ua.noQual ? -1 : ea.q;
+    const qb = ub && ub.noQual ? -1 : eb.q;
+    if (qa !== qb) return qb - qa;
+    const na = ua ? ua.name : "";
+    const nb = ub ? ub.name : "";
+    return na.localeCompare(nb, "ru");
+  });
+
+  els.rosterList.innerHTML = "";
+  if (keys.length === 0) {
+    els.rosterList.innerHTML = '<div class="empty-msg">Ростер пуст. Добавьте юнитов слева.</div>';
+  } else {
+    keys.forEach(key => {
+      const entry = roster[key];
+      const unit = getUnitById(entry.unitId);
+      if (!unit) return;
+      const price = unitPrice(unit, entry.q);
+      const qLabel = unit.noQual ? "" : ' <small style="color:#9aa0a6">(★' + entry.q + ')</small>';
+      const item = document.createElement("div");
+      item.className = "roster-item";
+      item.innerHTML = '<span class="name">' + unit.name + qLabel + '</span>' +
+        '<span class="qty">×' + entry.count + '</span>' +
+        '<span class="unit-points">' + (price * entry.count) + ' очк.</span>' +
+        '<button class="remove" title="Удалить один" data-key="' + key + '">−</button>';
+      item.addEventListener("click", (e) => {
+        if (e.target.closest("button")) return;
+        openUnitCard(entry.unitId, key);
+      });
+      item.querySelector(".remove").addEventListener("click", (e) => {
+        e.stopPropagation();
+        removeUnit(key);
+      });
+      els.rosterList.appendChild(item);
+    });
+  }
+
+  const points = getRosterPoints();
+  const count = getRosterUnitCount();
+  const remain = pointLimit - points;
+
+  els.totalPoints.textContent = points;
+  els.sumPoints.textContent = points;
+  els.sumLimit.textContent = pointLimit;
+  els.sumRemain.textContent = remain;
+  els.sumRemain.className = remain < 0 ? "over" : "ok";
+  els.sumUnits.textContent = count;
+  els.headerRemain.textContent = remain;
+  els.headerRemain.className = "remain " + (remain < 0 ? "over" : "ok");
+
+  syncCatalogQualifications();
+  updateButtons();
+}
+
+/* =========================================================
+   11) ДЕЙСТВИЯ
+   ========================================================= */
+function addUnit(unitId, q) {
+  const unit = getUnitById(unitId);
+  if (!unit) return;
+  if (unit.noQual) q = BASE_Q;
+  const price = unitPrice(unit, q);
+  if (getRosterPoints() + price > pointLimit) return;
+
+  let foundKey = null;
+  for (const key in roster) {
+    if (roster[key].unitId === unitId && roster[key].q === q) { foundKey = key; break; }
+  }
+  if (foundKey) roster[foundKey].count++;
+  else {
+    const key = "r" + (rosterCounter++);
+    roster[key] = { unitId: unitId, q: q, count: 1 };
+  }
+  renderRoster();
+}
+function removeUnit(key) {
+  if (!roster[key]) return;
+  roster[key].count--;
+  if (roster[key].count <= 0) delete roster[key];
+  renderRoster();
+}
+
+/* =========================================================
+   12) ОЧИСТИТЬ
+   ========================================================= */
+function clearRoster() {
+  roster = {};
+  if (els.exportArea) els.exportArea.value = "";
+  renderRoster();
+}
+
+/* =========================================================
+   13) ЭКСПОРТ
+   ========================================================= */
+function exportRoster() {
+  const lines = [];
+  lines.push("=== ДОРОГА НА БЕРЛИН — РОСТЕР ===");
+  lines.push("Лимит очков: " + pointLimit);
+  lines.push("Использовано: " + getRosterPoints());
+  lines.push("Остаток: " + (pointLimit - getRosterPoints()));
+  lines.push("----------------------------------------------");
+  const keys = Object.keys(roster).sort((ka, kb) => {
+    const ea = roster[ka], eb = roster[kb];
+    const ua = getUnitById(ea.unitId), ub = getUnitById(eb.unitId);
+    const qa = ua && ua.noQual ? -1 : ea.q;
+    const qb = ub && ub.noQual ? -1 : eb.q;
+    if (qa !== qb) return qb - qa;
+    return (ua ? ua.name : "").localeCompare(ub ? ub.name : "", "ru");
+  });
+  const fnames = { ussr:"СССР", germany:"Германия", usa:"США", hungary:"Венгрия" };
+  for (const key of keys) {
+    const entry = roster[key];
+    const unit = getUnitById(entry.unitId);
+    if (!unit) continue;
+    const price = unitPrice(unit, entry.q);
+    const qLabel = unit.noQual ? "" : " ★" + entry.q;
+    lines.push("[" + (fnames[unit.faction] || unit.faction) + "] " + unit.name + qLabel + " × " + entry.count + " = " + (price * entry.count) + " очк.");
+  }
+  lines.push("----------------------------------------------");
+  lines.push("Итого юнитов: " + getRosterUnitCount());
+  lines.push("Итого очков: " + getRosterPoints());
+  if (els.exportArea) els.exportArea.value = lines.join("\n");
+}
+
+/* =========================================================
+   14) МОДАЛКА: ЗАКРЫТИЕ
+   ========================================================= */
+if (els.modalClose) els.modalClose.addEventListener("click", closeModal);
+if (els.modalBackdrop) els.modalBackdrop.addEventListener("click", (e) => {
+  if (e.target === els.modalBackdrop) closeModal();
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+
+/* =========================================================
+   15) ЗАГРУЗКА units.json (с fallback на DEFAULT_UNITS)
+   ========================================================= */
+async function loadUnits() {
+  let data = null;
+  try {
+    const res = await fetch("units.json", { cache: "no-store" });
+    if (res.ok) data = await res.json();
+  } catch (e) {
+    console.warn("units.json не загружен, использую DEFAULT_UNITS", e);
+  }
+  if (!data) data = DEFAULT_UNITS;
+
+  const common = data.common || [];
+  for (const f in data) {
+    if (f === "common") continue;
+    UNITS[f] = data[f].slice();
+    common.forEach(cu => {
+      const copy = JSON.parse(JSON.stringify(cu));
+      copy.id = f + "_" + cu.key;
+      UNITS[f].push(copy);
+    });
+    UNITS[f].sort((a, b) => {
+      const pa = a.noQual ? a.cost : priceForQualification(a.cost, BASE_Q);
+      const pb = b.noQual ? b.cost : priceForQualification(b.cost, BASE_Q);
+      if (pa !== pb) return pa - pb;
+      return a.name.localeCompare(b.name, "ru");
+    });
+  }
+  renderCatalog();
+  renderRoster();
+}
+
+/* =========================================================
+   16) ИНИЦИАЛИЗАЦИЯ + ДВУХШАГОВАЯ ОЧИСТКА
+   ========================================================= */
+const factionButtons = document.querySelectorAll(".faction-tabs button");
+factionButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    factionButtons.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentFaction = btn.dataset.faction;
+    resetClearButton();
+    renderCatalog();
+  });
+});
+
+if (els.limitInput) {
+  els.limitInput.addEventListener("input", (e) => {
+    const val = parseInt(e.target.value, 10);
+    pointLimit = isNaN(val) || val < 0 ? 0 : val;
+    renderRoster();
+  });
+}
+
+const btnClear = document.getElementById("btnClear");
+const btnExport = document.getElementById("btnExport");
+if (btnExport) btnExport.addEventListener("click", () => { resetClearButton(); exportRoster(); });
+
+let clearConfirmTimer = null;
+let clearPending = false;
+
+function resetClearButton() {
+  if (clearConfirmTimer) { clearTimeout(clearConfirmTimer); clearConfirmTimer = null; }
+  clearPending = false;
+  if (!btnClear) return;
+  btnClear.classList.remove("danger");
+  btnClear.textContent = "🗑 Очистить";
+  btnClear.disabled = false;
+}
+function armClearButton() {
+  clearPending = true;
+  if (!btnClear) return;
+  btnClear.classList.add("danger");
+  btnClear.textContent = "Очистить всё?";
+  if (clearConfirmTimer) clearTimeout(clearConfirmTimer);
+  clearConfirmTimer = setTimeout(resetClearButton, 3000);
+}
+if (btnClear) {
+  btnClear.addEventListener("click", () => {
+    if (!clearPending) { armClearButton(); return; }
+    resetClearButton();
+    clearRoster();
+  });
+}
+document.addEventListener("click", (e) => {
+  if (!clearPending) return;
+  if (btnClear && btnClear.contains(e.target)) return;
+  resetClearButton();
+}, true);
+
+/* =========================================================
+   17) СТАРТ
+   ========================================================= */
+loadUnits();
+</script>
+</body>
+</html>
