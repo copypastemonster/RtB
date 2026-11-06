@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RtB 0.4 — Army Builder v20.3</title>
+<title>RtB 0.4 — Army Builder v20.4</title>
 <style>
   :root {
     --bg:#1a1a1a; --panel:#262626; --panel-2:#303030; --text:#e8e8e8;
@@ -186,7 +186,7 @@
 <body>
 
 <header>
-  <h1>ДОРОГА НА <span>БЕРЛИН</span> — Army Builder v20.3</h1>
+  <h1>ДОРОГА НА <span>БЕРЛИН</span> — Army Builder v20.4</h1>
   <div class="header-right">
     <button id="btnRules" class="settings-btn" title="Книга правил">📖</button>
     <div class="total-box">
@@ -856,6 +856,12 @@ function renderCatalog() {
   updateButtons();
 }
 
+/* =========================================================
+   11) СИНХРОНИЗАЦИЯ КВАЛИФИКАЦИЙ
+   Не сбрасываем пользовательскую квалификацию, если она
+   влезает в лимит. Понижаем только когда перестала влезать.
+   ★8/★9 больше не затираются на ★7.
+   ========================================================= */
 function syncCatalogQualifications() {
   const remaining = pointLimit - getRosterPoints();
   const rows = els.list.querySelectorAll(".unit-row");
@@ -865,10 +871,19 @@ function syncCatalogQualifications() {
     const select = row.querySelector("select.q");
     const costEl = row.querySelector(".cost");
     if (!select) { if (costEl) costEl.textContent = unit.cost + " очк."; return; }
-    let q = MIN_Q;
-    for (let cand = BASE_Q; cand >= MIN_Q; cand--) {
-      if (priceForQualification(unit.cost, cand) <= remaining) { q = cand; break; }
+
+    let q = parseInt(select.value, 10);
+    if (isNaN(q)) q = BASE_Q;
+
+    // Если текущая квалификация не влезает — понижаем, пока не влезет
+    if (priceForQualification(unit.cost, q) > remaining) {
+      let found = false;
+      for (let cand = q; cand >= MIN_Q; cand--) {
+        if (priceForQualification(unit.cost, cand) <= remaining) { q = cand; found = true; break; }
+      }
+      if (!found) q = MIN_Q;
     }
+
     select.value = q;
     costEl.textContent = priceForQualification(unit.cost, q) + " очк.";
   });
@@ -923,16 +938,16 @@ function updateButtons() {
 }
 
 /* =========================================================
-   11) РЕНДЕР РОСТЕРА
+   12) РЕНДЕР РОСТЕРА (по убыванию цены)
    ========================================================= */
 function renderRoster() {
   const keys = Object.keys(roster).sort((ka, kb) => {
-  const ea = roster[ka], eb = roster[kb];
-  const ua = getUnitById(ea.unitId), ub = getUnitById(eb.unitId);
-  const pa = ua ? unitPrice(ua, ea.q) : 0;
-  const pb = ub ? unitPrice(ub, eb.q) : 0;
-  if (pa !== pb) return pb - pa;
-  return (ua ? ua.name : "").localeCompare(ub ? ub.name : "", "ru");
+    const ea = roster[ka], eb = roster[kb];
+    const ua = getUnitById(ea.unitId), ub = getUnitById(eb.unitId);
+    const pa = ua ? unitPrice(ua, ea.q) : 0;
+    const pb = ub ? unitPrice(ub, eb.q) : 0;
+    if (pa !== pb) return pb - pa;
+    return (ua ? ua.name : "").localeCompare(ub ? ub.name : "", "ru");
   });
 
   const factions = getRosterFactions();
@@ -987,7 +1002,7 @@ function renderRoster() {
 }
 
 /* =========================================================
-   12) ДЕЙСТВИЯ
+   13) ДЕЙСТВИЯ
    ========================================================= */
 function addUnit(unitId, q) {
   const unit = getUnitById(unitId);
@@ -1025,11 +1040,11 @@ function clearRoster() {
 }
 
 /* =========================================================
-   13) ЭКСПОРТ
+   14) ЭКСПОРТ (в том же порядке, что и ростер)
    ========================================================= */
 function exportRoster() {
   const lines = [];
-  lines.push("=== ДОРОГА НА БЕРЛИН — РОСТЕР (v20.3) ===");
+  lines.push("=== ДОРОГА НА БЕРЛИН — РОСТЕР (v20.4) ===");
   lines.push("Лимит очков: " + pointLimit);
   lines.push("Использовано: " + getRosterPoints());
   lines.push("Остаток: " + (pointLimit - getRosterPoints()));
@@ -1037,9 +1052,9 @@ function exportRoster() {
   const keys = Object.keys(roster).sort((ka, kb) => {
     const ea = roster[ka], eb = roster[kb];
     const ua = getUnitById(ea.unitId), ub = getUnitById(eb.unitId);
-    const qa = ua && ua.noQual ? -1 : ea.q;
-    const qb = ub && ub.noQual ? -1 : eb.q;
-    if (qa !== qb) return qb - qa;
+    const pa = ua ? unitPrice(ua, ea.q) : 0;
+    const pb = ub ? unitPrice(ub, eb.q) : 0;
+    if (pa !== pb) return pb - pa;
     return (ua ? ua.name : "").localeCompare(ub ? ub.name : "", "ru");
   });
   const fnames = { ussr:"СССР", germany:"Германия", usa:"США", hungary:"Венгрия" };
@@ -1058,7 +1073,7 @@ function exportRoster() {
 }
 
 /* =========================================================
-   14) ЗАКРЫТИЕ МОДАЛКИ
+   15) ЗАКРЫТИЕ МОДАЛКИ
    ========================================================= */
 if (els.modalClose) els.modalClose.addEventListener("click", closeModal);
 if (els.modalBackdrop) els.modalBackdrop.addEventListener("click", (e) => {
@@ -1067,7 +1082,7 @@ if (els.modalBackdrop) els.modalBackdrop.addEventListener("click", (e) => {
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
 
 /* =========================================================
-   15) ЗАГРУЗКА units.json
+   16) ЗАГРУЗКА units.json
    ========================================================= */
 async function loadUnits() {
   let data = null;
@@ -1097,7 +1112,7 @@ async function loadUnits() {
 }
 
 /* =========================================================
-   16) ИНИЦИАЛИЗАЦИЯ
+   17) ИНИЦИАЛИЗАЦИЯ
    ========================================================= */
 loadSettings();
 loadLimit();
