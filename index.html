@@ -407,7 +407,7 @@ function getRosterFactions() {
 }
 function maxAffordableQ(unit, remaining) {
   if (unit.noQual) return BASE_Q;
-  for (let q = BASE_Q; q >= MIN_Q; q--) {
+  for (let q = 9; q >= MIN_Q; q--) {
     if (priceForQualification(unit.cost, q) <= remaining) return q;
   }
   return null;
