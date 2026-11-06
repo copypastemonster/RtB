@@ -758,7 +758,7 @@ function parseRosterText(text) {
 function openImport() {
   let html = '<h2>📥 Импорт ростера</h2>';
   html += '<div style="font-size:13px;color:var(--muted);margin:6px 0 4px">Вставьте текст, скопированный из «Экспорт».<br>Если ростер уже есть — он будет заменён после подтверждения.</div>';
-  html += '<textarea class="import-area" id="importText" placeholder="[СССР] Т-34-76 ★7 × 1 = 125 очк.&#10;[Германия] Pz.Kpfw. IV ★7 × 2 = 282 очк."></textarea>';
+  html += '<textarea class="import-area" id="importText"></textarea>';
   html += '<div id="importErrorBox"></div>';
   html += '<div class="modal-actions">';
   html += '<button class="remove-btn" id="btnImportCancel">Отмена</button>';
