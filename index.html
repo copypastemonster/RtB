@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RtB 0.4 — Army Builder v20</title>
+<title>RtB 0.4 — Army Builder v20.3</title>
 <style>
   :root {
     --bg:#1a1a1a; --panel:#262626; --panel-2:#303030; --text:#e8e8e8;
@@ -38,6 +38,7 @@
   }
   header h1{margin:0;font-size:20px;letter-spacing:1px}
   header h1 span{color:var(--accent)}
+  .header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .total-box{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:15px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
   .total-box b{color:var(--amber);font-size:19px}
   .total-box .remain{font-weight:700}
@@ -185,16 +186,18 @@
 <body>
 
 <header>
-  <h1>ДОРОГА НА <span>БЕРЛИН</span> — Army Builder v20</h1>
-  <div class="total-box">
-    <span>Очки: <b id="totalPoints">0</b></span>
-    <span>Остаток: <span id="headerRemain" class="remain ok">500</span></span>
-    <span>Лимит:
-      <input type="number" id="limitInput" class="limit-input" value="500" min="0" step="10">
-    </span>
+  <h1>ДОРОГА НА <span>БЕРЛИН</span> — Army Builder v20.3</h1>
+  <div class="header-right">
     <button id="btnRules" class="settings-btn" title="Книга правил">📖</button>
-    <button id="btnSettings" class="settings-btn" title="Настройки">⚙</button>
-    <button id="btnBattle" class="battle-btn" title="Начать бой">⚔ К бою</button>
+    <div class="total-box">
+      <span>Очки: <b id="totalPoints">0</b></span>
+      <span>Остаток: <span id="headerRemain" class="remain ok">500</span></span>
+      <span>Лимит:
+        <input type="number" id="limitInput" class="limit-input" value="500" min="0" step="10">
+      </span>
+      <button id="btnSettings" class="settings-btn" title="Настройки">⚙</button>
+      <button id="btnBattle" class="battle-btn" title="Начать бой">⚔ К бою</button>
+    </div>
   </div>
 </header>
 
@@ -1026,7 +1029,7 @@ function clearRoster() {
    ========================================================= */
 function exportRoster() {
   const lines = [];
-  lines.push("=== ДОРОГА НА БЕРЛИН — РОСТЕР (v20) ===");
+  lines.push("=== ДОРОГА НА БЕРЛИН — РОСТЕР (v20.3) ===");
   lines.push("Лимит очков: " + pointLimit);
   lines.push("Использовано: " + getRosterPoints());
   lines.push("Остаток: " + (pointLimit - getRosterPoints()));
