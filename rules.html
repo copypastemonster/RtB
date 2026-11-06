@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RtB 0.4 — Книга правил</title>
+<style>
+  :root {
+    --bg:#1a1a1a; --panel:#262626; --panel-2:#303030; --text:#e8e8e8;
+    --muted:#9aa0a6; --accent:#c62828; --accent-2:#8e1f1f; --green:#2e7d32; --border:#444;
+    --header-bg1:#151515; --header-bg2:#2b2b2b;
+    --amber:#ffcc80; --text-strong:#fff; --text-dim:#ddd;
+  }
+  body.light {
+    --bg:#f0f0f0; --panel:#ffffff; --panel-2:#f5f5f5; --text:#222;
+    --muted:#666; --accent:#c62828; --accent-2:#8e1f1f; --green:#2e7d32; --border:#ccc;
+    --header-bg1:#ffffff; --header-bg2:#f0f0f0;
+    --amber:#b26a00; --text-strong:#111; --text-dim:#333;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.55}
+
+  header{
+    position:sticky; top:0; z-index:100;
+    background:linear-gradient(90deg,var(--header-bg1),var(--header-bg2));
+    border-bottom:3px solid var(--accent);
+    box-shadow:0 2px 12px rgba(0,0,0,.6);
+    padding:12px 22px;
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
+  }
+  header h1{margin:0;font-size:19px;letter-spacing:1px}
+  header h1 span{color:var(--accent)}
+  .header-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .hbtn{background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:14px;font-weight:600;text-decoration:none;transition:.15s}
+  .hbtn:hover{background:var(--panel-2)}
+
+  main{max-width:960px;margin:0 auto;padding:18px 22px 60px}
+
+  .toc{
+    background:var(--panel);border:1px solid var(--border);border-radius:8px;
+    padding:14px 18px;margin-bottom:24px;
+  }
+  .toc h2{margin:0 0 10px;font-size:16px;color:var(--accent)}
+  .toc ol{margin:0;padding-left:22px;columns:2;column-gap:24px}
+  @media(max-width:700px){.toc ol{columns:1}}
+  .toc a{color:var(--text);text-decoration:none}
+  .toc a:hover{color:var(--accent);text-decoration:underline}
+  .toc li{margin-bottom:6px}
+
+  section.rule-block{margin-bottom:32px}
+  section.rule-block h2{
+    font-size:20px;color:var(--accent);margin:0 0 10px;
+    padding-bottom:6px;border-bottom:2px solid var(--accent);
+  }
+  section.rule-block h3{font-size:16px;color:var(--text-strong);margin:18px 0 6px}
+  section.rule-block p{margin:0 0 10px}
+  section.rule-block ul,section.rule-block ol{margin:0 0 12px;padding-left:24px}
+  section.rule-block li{margin-bottom:4px}
+  code{background:var(--panel-2);border-radius:4px;padding:1px 6px;font-family:monospace;font-size:13px;color:var(--text-strong)}
+  .note{background:var(--panel);border-left:3px solid var(--accent);padding:10px 14px;margin:12px 0;border-radius:0 6px 6px 0;font-size:14px}
+
+  table{width:100%;border-collapse:collapse;margin:10px 0 16px;font-size:14px}
+  th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--panel);color:var(--text-strong);font-weight:600}
+  tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+  body.light tr:nth-child(even) td{background:rgba(0,0,0,.03)}
+
+  .top-link{font-size:12px;color:var(--muted);text-decoration:none;margin-left:8px}
+  .top-link:hover{color:var(--accent)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ДОРОГА НА <span>БЕРЛИН</span> — Книга правил</h1>
+  <div class="header-actions">
+    <button class="hbtn" id="btnTheme" title="Переключить тему">🌓 Тема</button>
+    <a class="hbtn" href="index.html">← В билдер</a>
+  </div>
+</header>
+
+<main>
+
+<div class="toc">
+  <h2>Оглавление</h2>
+  <ol>
+    <li><a href="#intro">Введение</a></li>
+    <li><a href="#checks">Основные проверки</a></li>
+    <li><a href="#initiative">Инициатива и порядок ходов</a></li>
+    <li><a href="#activation">Активация моделей</a></li>
+    <li><a href="#actions">Действия</a></li>
+    <li><a href="#reactions">Реакции</a></li>
+    <li><a href="#shooting">Стрельба и попадание</a></li>
+    <li><a href="#cover">Укрытие</a></li>
+    <li><a href="#crit">Критические успехи</a></li>
+    <li><a href="#impossible">Невозможный шанс</a></li>
+    <li><a href="#damage">Таблица повреждений</a></li>
+    <li><a href="#card">Карточка модели</a></li>
+    <li><a href="#weapons">Характеристики оружия</a></li>
+    <li><a href="#commander">Командирская машина</a></li>
+    <li><a href="#terrain">Поле для игры</a></li>
+  </ol>
+</div>
+
+<section class="rule-block" id="intro">
+  <h2>1. Введение <a class="top-link" href="#top">↑</a></h2>
+  <p>«Дорога на Берлин» — это настольная тактическая игра, в которой вы управляете бронетехникой времён Второй мировой войны. Игра строится на поочерёдной активации моделей, бросках 2d6 и управлении ресурсами (действия, реакции, повреждения).</p>
+  <p><b>Цель игры</b> — победить противника, уничтожив его технику или выполнив условия сценария (определяются перед партией).</p>
+</section>
+
+<section class="rule-block" id="checks">
+  <h2>2. Основные проверки <a class="top-link" href="#top">↑</a></h2>
+  <p>Все проверки в игре выполняются броском 2d6.</p>
+  <table>
+    <tr><th>Результат</th><th>Значение</th></tr>
+    <tr><td><b>2</b></td><td>Критический успех — автоматическое попадание + двойное повреждение (при стрельбе)</td></tr>
+    <tr><td><b>3–11</b></td><td>Успех, если результат ≤ квалификации модели</td></tr>
+    <tr><td><b>12</b></td><td>Автоматический провал</td></tr>
+  </table>
+</section>
+
+<section class="rule-block" id="initiative">
+  <h2>3. Инициатива и порядок ходов <a class="top-link" href="#top">↑</a></h2>
+  <h3>Начало раунда</h3>
+  <ul>
+    <li>Оба игрока бросают 2d6.</li>
+    <li>Победитель (больший результат) выбирает, кто ходит первым.</li>
+    <li>Проигравший выбирает сторону стола, с которой будет выводить свои модели.</li>
+  </ul>
+  <h3>Бонус за серию поражений</h3>
+  <p>Начиная со второго раунда игрок, проигравший инициативу в предыдущем раунде, получает +1d6 к броску за каждое поражение подряд.</p>
+  <p>Игрок проиграл два раунда подряд → в третьем бросает 2d6 + 2d6.</p>
+  <h3>Ввод моделей</h3>
+  <p>Все модели начинают бой за пределами игрового поля. В порядке ходов игроки вводят миниатюры со своей стороны стола.</p>
+</section>
+
+<section class="rule-block" id="activation">
+  <h2>4. Активация моделей <a class="top-link" href="#top">↑</a></h2>
+  <p>Игроки активируют свои модели по одной, по очереди. При активации игрок объявляет два действия:</p>
+  <ul>
+    <li>Первичное действие</li>
+    <li>Вторичное действие</li>
+  </ul>
+  <p>Основное и вторичное действие выполняются параллельно. «Еду и стреляю» — можно двигаться и в любой момент объявить выстрел.</p>
+</section>
+
+<section class="rule-block" id="actions">
+  <h2>5. Действия <a class="top-link" href="#top">↑</a></h2>
+  <h3>5.1. Первичные действия</h3>
+  <table>
+    <tr><th>Действие</th><th>Эффект</th></tr>
+    <tr><td>Двигаться</td><td>Перемещение на базовую скорость. Поворот &gt;90° — раз за 3 см движения. Гусеничная техника и буксируемая артиллерия могут поворачиваться на месте (&lt;1 см за каждые полные 90°). Полутусеничная — нет. Движение назад — с половинной скоростью (округление в пользу игрока).</td></tr>
+    <tr><td>Наводиться</td><td>+1 к попаданию в следующий выстрел в этом же ходу (не действует на реакции).</td></tr>
+    <tr><td>Организовать засаду</td><td>Даёт 1 реакцию до следующей активации.</td></tr>
+  </table>
+  <h3>5.2. Вторичные действия</h3>
+  <table>
+    <tr><th>Действие</th><th>Эффект</th></tr>
+    <tr><td>Огонь</td><td>Атака из всего доступного оружия. Можно атаковать разные цели разным оружием, если между любыми точками корпусов можно провести воображаемую линию. Если цель ближе 3 см — бонус +2 к попаданию.</td></tr>
+    <tr><td>Манёвр уклонения</td><td>При реакции противника стрельбой — проверка умения экипажа. При успехе — автоматический промах противника. Действует только против одного выстрела.</td></tr>
+    <tr><td>Гнать, не разбирая дороги</td><td>Форсаж (дополнительное движение). Можно двигаться назад с половинной скоростью (округление в пользу игрока).</td></tr>
+    <tr><td>Удвоить бдительность</td><td>Даёт 1 реакцию до следующей активации, но со штрафом –2 к стрельбе.</td></tr>
+  </table>
+  <h3>5.3. Полные действия</h3>
+  <p>Некоторые эффекты требуют полного действия — модель тратит всю свою активацию в текущем раунде (не выполняет связку «Первичное + Вторичное»).</p>
+</section>
+
+<section class="rule-block" id="reactions">
+  <h2>6. Реакции <a class="top-link" href="#top">↑</a></h2>
+  <p>Вы можете реагировать, когда вражеская модель активируется (в момент объявления действия или во время первичного действия), и ваша модель видит её.</p>
+  <h3>Право на реакцию имеют:</h3>
+  <ul>
+    <li>Модель, ещё не активировавшаяся в этом раунде (она тратит свою активацию на реакцию).</li>
+    <li>Модель, выбравшая действие «Организовать засаду».</li>
+    <li>Модель, выбравшая действие «Удвоить бдительность».</li>
+  </ul>
+  <h3>Порядок реакции:</h3>
+  <ol>
+    <li>Активный игрок объявляет и выполняет первичное действие.</li>
+    <li>Противник заявляет: «Реагирую такой-то моделью».</li>
+    <li>Активный игрок выполняет вторичное действие (например, стреляет).</li>
+    <li>Противник кидает на попадание и урон.</li>
+  </ol>
+  <p>Возможна ситуация, когда обе машины одновременно стреляют и уничтожают друг друга.</p>
+</section>
+
+<section class="rule-block" id="shooting">
+  <h2>7. Стрельба и попадание <a class="top-link" href="#top">↑</a></h2>
+  <h3>Формула попадания</h3>
+  <p>Бросок 2d6 должен быть ≤ <code>(квалификация модели – броня цели + бронебойность оружия)</code></p>
+  <h3>Определение зоны брони</h3>
+  <p>Проведите воображаемую линию между центральными точками моделей:</p>
+  <ul>
+    <li>Линия пересекает лоб → лобовая броня.</li>
+    <li>Борт → бортовая.</li>
+    <li>Корму → кормовая.</li>
+  </ul>
+  <p>Броня крыши и днища используется только по спец. правилам (артиллерия, гранаты пехоты и т.п.).</p>
+</section>
+
+<section class="rule-block" id="cover">
+  <h2>8. Укрытие <a class="top-link" href="#top">↑</a></h2>
+  <p>Препятствие считается находящимся между моделями, если можно провести воображаемую линию между любыми двумя точками корпусов так, чтобы она пересекла препятствие.</p>
+  <ul>
+    <li>Если цель стоит к препятствию ближе длины своего корпуса — она получает +1 к броне.</li>
+    <li>Неуничтоженные модели не считаются укрытием (они «прозрачны» для стрельбы).</li>
+    <li>Уничтоженная модель помечается маркером и остаётся на столе как укрытие («остов»).</li>
+  </ul>
+</section>
+
+<section class="rule-block" id="crit">
+  <h2>9. Критические успехи <a class="top-link" href="#top">↑</a></h2>
+  <p>При выбросе «2» на 2d6:</p>
+  <ul>
+    <li>Попадание происходит автоматически (даже если шанс по формуле был 0).</li>
+    <li>Бросайте 2 раза по таблице повреждений (d6) — оба эффекта применяются.</li>
+  </ul>
+</section>
+
+<section class="rule-block" id="impossible">
+  <h2>10. Невозможный шанс <a class="top-link" href="#top">↑</a></h2>
+  <p>Если по формуле нужно кинуть ≤2, то обычное попадание невозможно. Успех возможен только при критическом успехе (2 на 2d6).</p>
+</section>
+
+<section class="rule-block" id="damage">
+  <h2>11. Таблица повреждений <a class="top-link" href="#top">↑</a></h2>
+  <p>При попадании бросьте d6 и примените эффект:</p>
+  <table>
+    <tr><th>d6</th><th>Эффект</th></tr>
+    <tr><td>1</td><td>Контузия экипажа — модель не может выполнять никаких действий, кроме «Прийти в себя» (полное действие, снимает эффект).</td></tr>
+    <tr><td>2</td><td>Повреждение ходовой — модель не может двигаться. Ремонт = полное действие + проверка скилла.</td></tr>
+    <tr><td>3</td><td>Пожар — потратьте полное действие на тушение, иначе в конце каждой активации модель получает ещё одно попадание.</td></tr>
+    <tr><td>4</td><td>Клин башни — у всего оружия с аркой, отличной от «вперёд 90°», арка становится «вперёд 90°».</td></tr>
+    <tr><td>5</td><td>Повреждены прицелы — стрельба со штрафом –2.</td></tr>
+    <tr><td>6</td><td>Детонация боекомплекта — модель уничтожена.</td></tr>
+  </table>
+  <h3>Повторные эффекты</h3>
+  <p>Если эффект уже есть на модели, а вы выкинули его снова — перебросьте d6 до нового эффекта.</p>
+  <h3>Снятие эффектов</h3>
+  <p>Снятие контузии, повреждения ходовой или пожара «открывает пункт» — повреждение считается устранённым.</p>
+  <h3>Накопление повреждений</h3>
+  <p>Если модель «собрала» 4 и более нелетальных повреждений — она уничтожена.</p>
+</section>
+
+<section class="rule-block" id="card">
+  <h2>12. Карточка модели <a class="top-link" href="#top">↑</a></h2>
+  <p>Каждая модель имеет карточку со следующими полями:</p>
+  <ul>
+    <li>Название</li>
+    <li>Квалификация экипажа</li>
+    <li>Скорость (база / форсаж)</li>
+    <li>Броня (лоб / борт / корма / крыша / днище)</li>
+    <li>Вооружение (список оружия)</li>
+    <li>Цена в очках</li>
+  </ul>
+</section>
+
+<section class="rule-block" id="weapons">
+  <h2>13. Характеристики оружия <a class="top-link" href="#top">↑</a></h2>
+  <ul>
+    <li><b>Количество атак</b> — сколько пар кубиков кидается. В рамках одной атаки засчитывается только одно попадание, независимо от числа успехов.</li>
+    <li><b>Дальность</b> (в см).</li>
+    <li><b>Арка</b> — у самоходок только «вперёд», у танков — 360°. При ограниченной арке стрельба возможна, только если цель находилась в арке во время движения или находится в ней, если модель не двигалась.</li>
+    <li><b>Бронебойность</b> — сколько брони отменяет.</li>
+    <li><b>Спец. правила</b> (например, у пулемёта: «не даёт эффекта, если у цели броня ≥1»).</li>
+  </ul>
+</section>
+
+<section class="rule-block" id="commander">
+  <h2>14. Командирская машина <a class="top-link" href="#top">↑</a></h2>
+  <p>Одна машина в игре может быть назначена командирской. При её активации вы можете дополнительно сделать ход ещё одной своей машиной, даже если она уже ходила в этом раунде.</p>
+</section>
+
+<section class="rule-block" id="terrain">
+  <h2>15. Поле для игры <a class="top-link" href="#top">↑</a></h2>
+  <p>Рекомендуемый размер поля — 80×80 см. Поле должно содержать как можно больше объектов ландшафта: дома, лесополосы, реки и т.д.</p>
+  <table>
+    <tr><th>Тип местности</th><th>Эффект</th></tr>
+    <tr><td>Сложный ландшафт (пашня, лес, ручьи)</td><td>Скорость модели снижается до 50% (округление в пользу игрока). Форсаж запрещён.</td></tr>
+    <tr><td>Густопокровная местность (лес)</td><td>Модели не видят друг друга сквозь неё. Модель внутри и снаружи видят друг друга, но модель внутри получает укрытие.</td></tr>
+    <tr><td>Реки</td><td>Непреодолимы (если нет спец. правила).</td></tr>
+    <tr><td>Ручьи</td><td>Считаются сложным ландшафтом.</td></tr>
+  </table>
+  <p>Все свойства ландшафта обсуждаются до начала партии.</p>
+</section>
+
+</main>
+
+<script>
+/* ==== Тема: та же, что в билдере (localStorage rtb_settings.dark) ==== */
+function loadTheme() {
+  let dark = true;
+  try {
+    const raw = localStorage.getItem("rtb_settings");
+    if (raw) {
+      const s = JSON.parse(raw);
+      if (typeof s.dark === "boolean") dark = s.dark;
+    }
+  } catch (e) {}
+  document.body.classList.toggle("light", !dark);
+}
+function toggleTheme() {
+  const isLight = document.body.classList.contains("light");
+  const dark = isLight; // если было светло — станет темно
+  document.body.classList.toggle("light", !dark);
+  try {
+    let s = {};
+    const raw = localStorage.getItem("rtb_settings");
+    if (raw) s = JSON.parse(raw);
+    s.dark = dark;
+    localStorage.setItem("rtb_settings", JSON.stringify(s));
+  } catch (e) {}
+}
+
+document.getElementById("btnTheme").addEventListener("click", toggleTheme);
+loadTheme();
+</script>
+</body>
+</html>

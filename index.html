@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RtB 0.3.9 — Army Builder v15</title>
+<title>RtB 0.4 — Army Builder v20</title>
 <style>
   :root {
     --bg:#1a1a1a; --panel:#262626; --panel-2:#303030; --text:#e8e8e8;
@@ -46,9 +46,31 @@
   .limit-input{width:76px;background:var(--input-bg);border:1px solid var(--border);color:var(--input-text);padding:4px 6px;border-radius:4px}
   .settings-btn{background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:15px;font-weight:600;transition:.15s}
   .settings-btn:hover{background:var(--panel-2)}
+  .battle-btn{background:var(--green);border:1px solid var(--green);color:#fff;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:15px;font-weight:700;transition:.15s;white-space:nowrap}
+  .battle-btn:hover{background:#1b5e20}
+  .battle-btn.disabled{background:#555;border-color:#555;cursor:not-allowed;opacity:.6}
 
   main{display:grid;grid-template-columns:1fr 400px;gap:14px;padding:14px;max-width:1500px;margin:0 auto}
   @media(max-width:1050px){main{grid-template-columns:1fr}}
+
+  body.in-battle header .total-box{display:none}
+  body.in-battle main{grid-template-columns:1fr;max-width:800px;padding:14px 14px 90px 14px}
+  body.in-battle main > section{display:none}
+  body.in-battle aside{position:static;top:auto;max-width:100%}
+  body.in-battle .roster-list{max-height:none;padding-bottom:80px}
+  body.in-battle .roster-actions{display:none}
+  body.in-battle .roster-summary{display:none}
+  body.in-battle textarea.export{display:none}
+  body.in-battle .roster-item .remove{display:none}
+
+  .stop-float{display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:200;
+    background:rgba(30,30,30,.85);border:1px solid #888;color:#fff;border-radius:10px;
+    padding:12px 28px;font-size:15px;font-weight:700;cursor:pointer;backdrop-filter:blur(6px);
+    box-shadow:0 4px 18px rgba(0,0,0,.5);transition:.15s;white-space:nowrap}
+  .stop-float:hover{background:rgba(60,60,60,.9);border-color:#bbb}
+  body.light .stop-float{background:rgba(255,255,255,.9);border-color:#999;color:#222;box-shadow:0 4px 18px rgba(0,0,0,.25)}
+  body.light .stop-float:hover{background:rgba(240,240,240,1);border-color:#666}
+  body.in-battle .stop-float{display:block}
 
   .faction-tabs{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px;margin-bottom:10px}
   .faction-tabs.hidden{display:none}
@@ -84,6 +106,7 @@
   .roster-item{background:var(--panel-2);border-radius:5px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:13px;cursor:pointer;transition:.12s}
   .roster-item:hover{background:var(--card-bg-2);filter:brightness(1.1)}
   .roster-item .name{flex:1}
+  .roster-item .faction-flag{display:inline-block;width:16px;height:11px;background:#cc0000;border:1px solid #8b0000;border-radius:2px;vertical-align:middle;margin-right:5px}
   .roster-item .qty{background:#555;color:#fff;border-radius:4px;padding:1px 8px;font-size:12px}
   .roster-item .unit-points{color:var(--amber);font-weight:600;font-size:12px;min-width:52px;text-align:right}
   .roster-item .remove{background:transparent;border:1px solid #666;color:#ff8a80;border-radius:4px;cursor:pointer;width:24px;height:24px;font-size:15px;line-height:1}
@@ -98,12 +121,16 @@
   .roster-actions button:hover{filter:brightness(1.1)}
   .roster-actions .primary{background:var(--green);border-color:var(--green);color:#fff}
   .roster-actions .primary:hover{background:#1b5e20}
+  .roster-actions .primary.armed{background:#1565c0;border-color:#1565c0}
+  .roster-actions .primary.armed:hover{background:#0d47a1}
+  .roster-actions .primary.copied{background:#2e7d32;border-color:#2e7d32}
   .roster-actions .danger{background:#b71c1c;border-color:#b71c1c;color:#fff;animation:pulse .8s infinite}
   .roster-actions .danger:hover{background:#8e0000}
   @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(198,40,40,.6)}50%{box-shadow:0 0 0 6px rgba(198,40,40,0)}}
   textarea.export{width:100%;margin-top:8px;background:var(--input-bg);color:var(--input-text);border:1px solid var(--border);border-radius:6px;padding:8px;font-family:monospace;font-size:12px;min-height:120px;resize:vertical}
+  textarea.import-area{width:100%;margin-top:8px;background:var(--input-bg);color:var(--input-text);border:1px solid var(--border);border-radius:6px;padding:8px;font-family:monospace;font-size:12px;min-height:180px;resize:vertical}
+  .import-error{color:var(--red-soft);font-size:13px;margin-top:8px;white-space:pre-wrap;font-family:monospace;background:rgba(198,40,40,.1);padding:8px;border-radius:6px;border:1px solid rgba(198,40,40,.4)}
 
-  /* МОДАЛКА */
   .modal-backdrop{position:fixed;inset:0;background:var(--modal-overlay);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px}
   .modal-backdrop.open{display:flex}
   .modal{background:var(--modal-bg);border:2px solid var(--accent);border-radius:10px;width:100%;max-width:720px;max-height:92vh;overflow-y:auto;padding:18px 20px 20px;position:relative;box-shadow:0 10px 40px rgba(0,0,0,.6)}
@@ -137,18 +164,16 @@
   .modal-actions .remove-all{background:#7a1f1f;color:#fff}
   .modal-actions .remove-all:hover{background:#5a1515}
 
-  /* НАСТРОЙКИ */
   .settings-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px}
   .settings-row:last-child{border-bottom:none}
   .settings-row input[type="checkbox"]{width:20px;height:20px;margin-top:2px;cursor:pointer;accent-color:var(--accent)}
   .settings-row .settings-label{font-weight:600;color:var(--text-strong);margin-bottom:2px}
   .settings-row .settings-desc{font-size:12px;color:var(--muted);line-height:1.4}
-  .settings-actions{display:flex;gap:10px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);flex-wrap:wrap}
+  .settings-actions{display:flex;gap:10px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);flex-wrap:wrap;justify-content:flex-end}
   .settings-actions button{padding:10px 16px;border-radius:6px;border:1px solid var(--border);background:var(--panel-2);color:var(--text);cursor:pointer;font-weight:600;font-size:13px}
   .settings-actions button:hover{filter:brightness(1.1)}
   .settings-actions .primary{background:var(--green);border-color:var(--green);color:#fff}
 
-  /* КАСТОМНЫЙ CONFIRM */
   .confirm-actions{display:flex;gap:10px;margin-top:18px;padding-top:12px;border-top:1px solid var(--border);flex-wrap:wrap;justify-content:flex-end}
   .confirm-actions button{padding:10px 16px;border-radius:6px;border:none;cursor:pointer;font-weight:700;font-size:14px}
   .confirm-actions .ok{background:#b71c1c;color:#fff}
@@ -160,14 +185,16 @@
 <body>
 
 <header>
-  <h1>ДОРОГА НА <span>БЕРЛИН</span> — Army Builder v15</h1>
+  <h1>ДОРОГА НА <span>БЕРЛИН</span> — Army Builder v20</h1>
   <div class="total-box">
     <span>Очки: <b id="totalPoints">0</b></span>
     <span>Остаток: <span id="headerRemain" class="remain ok">500</span></span>
     <span>Лимит:
       <input type="number" id="limitInput" class="limit-input" value="500" min="0" step="10">
     </span>
+    <button id="btnRules" class="settings-btn" title="Книга правил">📖</button>
     <button id="btnSettings" class="settings-btn" title="Настройки">⚙</button>
+    <button id="btnBattle" class="battle-btn" title="Начать бой">⚔ К бою</button>
   </div>
 </header>
 
@@ -195,13 +222,15 @@
     </div>
     <div class="roster-actions">
       <button id="btnExport" class="primary">📋 Экспорт</button>
+      <button id="btnImport">📥 Импорт</button>
       <button id="btnClear">🗑 Очистить</button>
     </div>
     <textarea class="export" id="exportArea" placeholder="Текст ростера появится здесь..." readonly></textarea>
   </aside>
 </main>
 
-<!-- МОДАЛКА (универсальная: карточка / настройки / confirm) -->
+<button id="btnStop" class="stop-float" title="Завершить бой">✕ Отбой</button>
+
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal" id="modal">
     <button class="modal-close" id="modalClose" title="Закрыть">×</button>
@@ -211,7 +240,7 @@
 
 <script>
 /* =========================================================
-   1) КОНСТАНТЫ И ФУНКЦИИ ЦЕНЫ
+   1) КОНСТАНТЫ ЦЕНЫ
    ========================================================= */
 const BASE_Q = 7;
 const MIN_Q = 4;
@@ -221,42 +250,40 @@ function priceForQualification(baseCost, q) {
 function qualificationOptions() { return [4, 5, 6, 7, 8, 9]; }
 
 /* =========================================================
-   2) FALLBACK
+   2) FALLBACK: 10 тестовых юнитов
    ========================================================= */
-const DEFAULT_UNITS = {
-  ussr: [], germany: [], usa: [], hungary: [],
-  common: [
-    { key:"testunit1", name:"TEST UNIT 1 (fallback)", cost:10, qual:7, speed:"10 / 5",
-      armor:{front:1,side:1,rear:1,roof:0,bottom:0},
-      weapons:[{name:"Тестовое орудие", stats:"Атаки: 1, Дальность: 30 см, ББ: 1, Арка: 360°", notes:[]}],
-      rules:["Это тестовый юнит из DEFAULT_UNITS. Значит units.json не загрузился."] },
-    { key:"testunit2", name:"TEST UNIT 2 (fallback)", cost:20, qual:7, speed:"10 / 5",
-      armor:{front:2,side:1,rear:1,roof:0,bottom:0},
-      weapons:[{name:"Тестовое орудие", stats:"Атаки: 1, Дальность: 30 см, ББ: 1, Арка: 360°", notes:[]}],
-      rules:["Это тестовый юнит из DEFAULT_UNITS. Значит units.json не загрузился."] },
-    { key:"testunit3", name:"TEST UNIT 3 (fallback)", cost:30, qual:7, speed:"10 / 5",
-      armor:{front:3,side:1,rear:1,roof:0,bottom:0},
-      weapons:[{name:"Тестовое орудие", stats:"Атаки: 1, Дальность: 30 см, ББ: 1, Арка: 360°", notes:[]}],
-      rules:["Это тестовый юнит из DEFAULT_UNITS. Значит units.json не загрузился."] }
-  ]
-};
+const TEST_COMMON = [];
+for (let i = 1; i <= 10; i++) {
+  TEST_COMMON.push({
+    key: "testunit" + i,
+    name: "TEST UNIT " + i + " (fallback)",
+    cost: i * 10,
+    qual: 7,
+    speed: "10 / 5",
+    armor: { front: i, side: 1, rear: 1, roof: 0, bottom: 0 },
+    weapons: [{ name: "Тестовое орудие", stats: "Атаки: 1, Дальность: 30 см, ББ: 1, Арка: 360°", notes: [] }],
+    rules: ["Это тестовый юнит из DEFAULT_UNITS. Значит units.json не загрузился."]
+  });
+}
+const DEFAULT_UNITS = { ussr: [], germany: [], usa: [], hungary: [], common: TEST_COMMON };
 
 /* =========================================================
-   3) НАСТРОЙКИ + LOCALSTORAGE
+   3) LOCALSTORAGE
    ========================================================= */
 const LS_KEYS = {
   settings: "rtb_settings",
   roster:   "rtb_roster",
   limit:    "rtb_limit",
-  faction:  "rtb_faction"
+  faction:  "rtb_faction",
+  inBattle: "rtb_inbattle"
 };
-
 const DEFAULT_SETTINGS = { mix: false, dark: true };
 let settings = Object.assign({}, DEFAULT_SETTINGS);
 let pointLimit = 500;
 let currentFaction = "ussr";
 let roster = {};
 let rosterCounter = 0;
+let inBattle = false;
 
 function loadSettings() {
   try {
@@ -269,9 +296,7 @@ function saveSettings() {
   try { localStorage.setItem(LS_KEYS.settings, JSON.stringify(settings)); }
   catch (e) { console.warn("Не удалось сохранить настройки", e); }
 }
-function applyTheme() {
-  document.body.classList.toggle("light", !settings.dark);
-}
+function applyTheme() { document.body.classList.toggle("light", !settings.dark); }
 
 function loadLimit() {
   try {
@@ -286,7 +311,6 @@ function saveLimit() {
   try { localStorage.setItem(LS_KEYS.limit, String(pointLimit)); }
   catch (e) { console.warn("Не удалось сохранить лимит", e); }
 }
-
 function loadFaction() {
   try {
     const f = localStorage.getItem(LS_KEYS.faction);
@@ -297,7 +321,6 @@ function saveFaction() {
   try { localStorage.setItem(LS_KEYS.faction, currentFaction); }
   catch (e) { console.warn("Не удалось сохранить фракцию", e); }
 }
-
 function loadRoster() {
   try {
     const raw = localStorage.getItem(LS_KEYS.roster);
@@ -305,7 +328,6 @@ function loadRoster() {
       const parsed = JSON.parse(raw);
       if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
         roster = parsed;
-        // восстановить rosterCounter, чтобы не перезаписывать ключи
         let maxN = -1;
         for (const k in roster) {
           const m = /^r(\d+)$/.exec(k);
@@ -320,9 +342,17 @@ function saveRoster() {
   try { localStorage.setItem(LS_KEYS.roster, JSON.stringify(roster)); }
   catch (e) { console.warn("Не удалось сохранить ростер", e); }
 }
+function loadBattle() {
+  try { inBattle = localStorage.getItem(LS_KEYS.inBattle) === "true"; }
+  catch (e) { console.warn("Не удалось прочитать режим боя", e); }
+}
+function saveBattle() {
+  try { localStorage.setItem(LS_KEYS.inBattle, String(inBattle)); }
+  catch (e) { console.warn("Не удалось сохранить режим боя", e); }
+}
 
 /* =========================================================
-   4) UNITS И ВСПОМОГАТЕЛЬНЫЕ
+   4) UNITS + ВСПОМОГАТЕЛЬНЫЕ
    ========================================================= */
 let UNITS = {};
 const els = {
@@ -364,6 +394,14 @@ function getRosterUnitCount() {
   for (const key in roster) n += roster[key].count;
   return n;
 }
+function getRosterFactions() {
+  const set = new Set();
+  for (const key in roster) {
+    const u = getUnitById(roster[key].unitId);
+    if (u) set.add(u.faction);
+  }
+  return set;
+}
 function maxAffordableQ(unit, remaining) {
   if (unit.noQual) return BASE_Q;
   for (let q = BASE_Q; q >= MIN_Q; q--) {
@@ -382,14 +420,91 @@ function shortDesc(unit) {
   return bits.join(" · ");
 }
 
+const FACTION_FLAGS = {
+  ussr: { emoji: null, css: "flag-red" },
+  germany: { emoji: "🇩🇪" },
+  usa: { emoji: "🇺🇸" },
+  hungary: { emoji: "🇭🇺" }
+};
+function factionFlagHTML(faction) {
+  const f = FACTION_FLAGS[faction];
+  if (!f) return "";
+  if (f.css) return '<span class="faction-flag"></span>';
+  return '<span style="margin-right:5px">' + f.emoji + '</span>';
+}
+
 /* =========================================================
-   5) ВКЛАДКИ ФРАКЦИЙ: ВИДИМОСТЬ
+   5) ВКЛАДКИ, БОЙ, ЭКСПОРТ-СОСТОЯНИЕ
    ========================================================= */
 function updateFactionTabsVisibility() {
+  if (inBattle) { els.factionTabs.classList.add("hidden"); return; }
   const isEmpty = getRosterUnitCount() === 0;
   const shouldShow = settings.mix || isEmpty;
   if (shouldShow) els.factionTabs.classList.remove("hidden");
   else els.factionTabs.classList.add("hidden");
+}
+function updateBattleButtons() {
+  const btnBattle = document.getElementById("btnBattle");
+  if (!btnBattle) return;
+  if (inBattle) {
+    btnBattle.style.display = "none";
+  } else {
+    btnBattle.style.display = "";
+    const has = getRosterUnitCount() > 0;
+    btnBattle.classList.toggle("disabled", !has);
+    btnBattle.disabled = !has;
+    btnBattle.title = has ? "Начать бой" : "Сначала соберите ростер";
+  }
+}
+function setBattleMode(on) {
+  inBattle = !!on;
+  document.body.classList.toggle("in-battle", inBattle);
+  saveBattle();
+  updateBattleButtons();
+  updateFactionTabsVisibility();
+  resetExportButton();
+  renderRoster();
+}
+
+let exportArmed = false;
+let exportCopyTimer = null;
+
+function resetExportButton() {
+  exportArmed = false;
+  if (exportCopyTimer) { clearTimeout(exportCopyTimer); exportCopyTimer = null; }
+  const btn = document.getElementById("btnExport");
+  if (!btn) return;
+  btn.textContent = "📋 Экспорт";
+  btn.classList.remove("armed", "copied");
+}
+
+function copyExportToClipboard() {
+  const text = (els.exportArea && els.exportArea.value) || "";
+  if (!text) return;
+  const done = () => {
+    const btn = document.getElementById("btnExport");
+    if (btn) {
+      btn.textContent = "✅ Скопировано";
+      btn.classList.remove("armed");
+      btn.classList.add("copied");
+    }
+    if (exportCopyTimer) clearTimeout(exportCopyTimer);
+    exportCopyTimer = setTimeout(() => { resetExportButton(); }, 1500);
+  };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(done).catch(fallbackCopy);
+    return;
+  }
+  fallbackCopy();
+  function fallbackCopy() {
+    try {
+      els.exportArea.focus();
+      els.exportArea.select();
+      const ok = document.execCommand("copy");
+      if (ok) done();
+      else console.warn("Копирование не удалось (execCommand)");
+    } catch (e) { console.warn("Копирование не удалось", e); }
+  }
 }
 
 /* =========================================================
@@ -412,7 +527,7 @@ function openUnitCard(unitId, fromRosterKey) {
   const fname = { ussr:"СССР", germany:"Германия", usa:"США", hungary:"Венгрия" }[unit.faction] || unit.faction;
 
   let html = '<h2>' + unit.name + '</h2>';
-  html += '<div class="modal-faction">' + fname + '</div>';
+  html += '<div class="modal-faction">' + factionFlagHTML(unit.faction) + fname + '</div>';
   html += '<div class="modal-price">' + price + ' очк.' + (unit.noQual ? '' : ' <small style="color:var(--muted)">(★' + q + ')</small>') + '</div>';
   if (fromRoster) html += '<div class="extra-line"><span class="lbl">В ростере:</span> ×' + entry.count + '</div>';
 
@@ -450,50 +565,55 @@ function openUnitCard(unitId, fromRosterKey) {
     unit.rules.forEach(r => { html += '<div class="rule-item">' + r + '</div>'; });
   }
 
-  html += '<div class="modal-actions">';
-  if (!fromRoster) {
-    html += '<button class="add" id="modalAddBtn">Добавить в ростер</button>';
-  } else {
-    html += '<button class="remove-btn" id="modalRemoveOne">− Удалить один</button>';
-    html += '<button class="remove-all" id="modalRemoveAll">Удалить всё</button>';
+  if (!inBattle) {
+    html += '<div class="modal-actions">';
+    if (!fromRoster) {
+      html += '<button class="add" id="modalAddBtn">Добавить в ростер</button>';
+    } else {
+      html += '<button class="remove-btn" id="modalRemoveOne">− Удалить один</button>';
+      html += '<button class="remove-all" id="modalRemoveAll">Удалить всё</button>';
+    }
+    html += '</div>';
   }
-  html += '</div>';
 
   els.modalContent.innerHTML = html;
 
-  if (!fromRoster) {
-    const btn = document.getElementById("modalAddBtn");
-    btn.addEventListener("click", () => {
-      const row = els.list.querySelector('.unit-row[data-unit-id="' + unitId + '"]');
-      const select = row ? row.querySelector("select.q") : null;
-      addUnitSmart(unitId, select);
-      closeModal();
-    });
-    const remaining = pointLimit - getRosterPoints();
-    const canAfford = unit.noQual ? (unit.cost <= remaining) : (maxAffordableQ(unit, remaining) !== null);
-    if (!canAfford) {
-      btn.classList.add("disabled");
-      btn.disabled = true;
-      btn.textContent = "Лимит очков";
+  if (!inBattle) {
+    if (!fromRoster) {
+      const btn = document.getElementById("modalAddBtn");
+      btn.addEventListener("click", () => {
+        const row = els.list.querySelector('.unit-row[data-unit-id="' + unitId + '"]');
+        const select = row ? row.querySelector("select.q") : null;
+        addUnitSmart(unitId, select);
+        closeModal();
+      });
+      const remaining = pointLimit - getRosterPoints();
+      const canAfford = unit.noQual ? (unit.cost <= remaining) : (maxAffordableQ(unit, remaining) !== null);
+      if (!canAfford) {
+        btn.classList.add("disabled");
+        btn.disabled = true;
+        btn.textContent = "Лимит очков";
+      }
+    } else {
+      document.getElementById("modalRemoveOne").addEventListener("click", () => {
+        removeUnit(fromRosterKey);
+        if (roster[fromRosterKey]) openUnitCard(unitId, fromRosterKey);
+        else closeModal();
+      });
+      document.getElementById("modalRemoveAll").addEventListener("click", () => {
+        delete roster[fromRosterKey];
+        saveRoster();
+        resetExportButton();
+        renderRoster();
+        closeModal();
+      });
     }
-  } else {
-    document.getElementById("modalRemoveOne").addEventListener("click", () => {
-      removeUnit(fromRosterKey);
-      if (roster[fromRosterKey]) openUnitCard(unitId, fromRosterKey);
-      else closeModal();
-    });
-    document.getElementById("modalRemoveAll").addEventListener("click", () => {
-      delete roster[fromRosterKey];
-      saveRoster();
-      renderRoster();
-      closeModal();
-    });
   }
   els.modalBackdrop.classList.add("open");
 }
 
 /* =========================================================
-   7) МОДАЛКА НАСТРОЕК
+   7) НАСТРОЙКИ
    ========================================================= */
 function openSettings() {
   let html = '<h2>⚙ Настройки</h2>';
@@ -508,71 +628,50 @@ function openSettings() {
   html += '<div class="settings-desc">По умолчанию включена. Снимите галочку для светлой темы.</div></label>';
   html += '</div>';
   html += '<div class="settings-actions">';
-  html += '<button id="btnResetRoster">Сбросить сохранённый ростер</button>';
   html += '<button class="primary" id="btnSettingsClose">Готово</button>';
   html += '</div>';
-
   els.modalContent.innerHTML = html;
 
   const chkMix = document.getElementById("chkMix");
   const chkDark = document.getElementById("chkDark");
-  const btnReset = document.getElementById("btnResetRoster");
   const btnClose = document.getElementById("btnSettingsClose");
 
   chkDark.addEventListener("change", () => {
     settings.dark = chkDark.checked;
     applyTheme();
     saveSettings();
+    resetExportButton();
   });
-
   chkMix.addEventListener("change", () => {
     if (chkMix.checked) {
       settings.mix = true;
       saveSettings();
       updateFactionTabsVisibility();
+      resetExportButton();
     } else {
-      // Пытаемся выключить. Проверяем: есть ли в ростере смешанные фракции?
-      const factions = new Set();
-      for (const k in roster) {
-        const u = getUnitById(roster[k].unitId);
-        if (u) factions.add(u.faction);
-      }
+      const factions = getRosterFactions();
       if (factions.size > 1) {
-        // Показываем кастомный confirm
         openConfirm(
           "В ростере есть юниты из разных фракций. Очистить ростер и вернуться к режиму одной фракции?",
           () => {
-            // OK — очищаем ростер, выключаем mix
             settings.mix = false;
             saveSettings();
             roster = {};
             saveRoster();
             chkMix.checked = false;
+            resetExportButton();
             renderRoster();
             updateFactionTabsVisibility();
           },
-          () => {
-            // Отмена — откатываем чекбокс
-            chkMix.checked = true;
-          }
+          () => { chkMix.checked = true; }
         );
       } else {
         settings.mix = false;
         saveSettings();
         updateFactionTabsVisibility();
+        resetExportButton();
       }
     }
-  });
-
-  btnReset.addEventListener("click", () => {
-    openConfirm(
-      "Удалить сохранённый ростер из памяти устройства? Текущий ростер останется, но при следующей перезагрузке будет пустым.",
-      () => {
-        try { localStorage.removeItem(LS_KEYS.roster); } catch (e) {}
-        closeModal();
-      },
-      null
-    );
   });
 
   btnClose.addEventListener("click", closeModal);
@@ -580,15 +679,15 @@ function openSettings() {
 }
 
 /* =========================================================
-   8) КАСТОМНЫЙ CONFIRM
+   8) CONFIRM
    ========================================================= */
 let _confirmCb = null;
-function openConfirm(message, onOk, onCancel) {
+function openConfirm(message, onOk, onCancel, okLabel) {
   let html = '<h2>Подтверждение</h2>';
   html += '<div style="font-size:14px;line-height:1.5;margin-top:8px">' + message + '</div>';
   html += '<div class="confirm-actions">';
   html += '<button class="cancel" id="confirmCancel">Отмена</button>';
-  html += '<button class="ok" id="confirmOk">Очистить</button>';
+  html += '<button class="ok" id="confirmOk">' + (okLabel || "Очистить") + '</button>';
   html += '</div>';
   els.modalContent.innerHTML = html;
 
@@ -605,14 +704,98 @@ function openConfirm(message, onOk, onCancel) {
   });
   els.modalBackdrop.classList.add("open");
 }
+function closeModal() { els.modalBackdrop.classList.remove("open"); _confirmCb = null; }
 
-function closeModal() {
-  els.modalBackdrop.classList.remove("open");
-  _confirmCb = null;
+/* =========================================================
+   9) ИМПОРТ
+   ========================================================= */
+const FACTION_NAMES_TO_KEY = { "СССР":"ussr", "Германия":"germany", "США":"usa", "Венгрия":"hungary" };
+
+function parseRosterText(text) {
+  const lines = text.split(/\r?\n/);
+  const errors = [];
+  const newRoster = {};
+  let counter = 0;
+  const re = /^\[([^\]]+)\]\s+(.+?)(?:\s+★(\d+))?\s+×\s+(\d+)\s+=\s+(\d+)\s+очк\.\s*$/;
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i].trim();
+    if (!raw) continue;
+    if (raw.startsWith("===") || raw.startsWith("---")) continue;
+    if (/^Лимит очков:/i.test(raw)) continue;
+    if (/^Использовано:/i.test(raw)) continue;
+    if (/^Остаток:/i.test(raw)) continue;
+    if (/^Итого юнитов:/i.test(raw)) continue;
+    if (/^Итого очков:/i.test(raw)) continue;
+    const m = re.exec(raw);
+    if (!m) { errors.push("Строка " + (i + 1) + ": не удалось разобрать формат → «" + raw + "»"); continue; }
+    const factionName = m[1].trim();
+    const unitName = m[2].trim();
+    const qRaw = m[3] !== undefined ? parseInt(m[3], 10) : null;
+    const count = parseInt(m[4], 10);
+    const factionKey = FACTION_NAMES_TO_KEY[factionName];
+    if (!factionKey) { errors.push("Строка " + (i + 1) + ": неизвестная фракция «" + factionName + "»"); continue; }
+    const list = UNITS[factionKey] || [];
+    const unit = list.find(u => u.name === unitName);
+    if (!unit) { errors.push("Строка " + (i + 1) + ": юнит «" + unitName + "» не найден в фракции «" + factionName + "»"); continue; }
+    let q = BASE_Q;
+    if (unit.noQual) {
+      if (qRaw !== null) { errors.push("Строка " + (i + 1) + ": у юнита «" + unitName + "» квалификация не указана, а в строке стоит ★" + qRaw); continue; }
+      q = BASE_Q;
+    } else {
+      if (qRaw === null) { errors.push("Строка " + (i + 1) + ": у юнита «" + unitName + "» не указана квалификация (★Q)"); continue; }
+      if (qRaw < MIN_Q || qRaw > 9) { errors.push("Строка " + (i + 1) + ": квалификация ★" + qRaw + " вне диапазона ★" + MIN_Q + "–★9"); continue; }
+      q = qRaw;
+    }
+    if (isNaN(count) || count < 1) { errors.push("Строка " + (i + 1) + ": количество должно быть ≥ 1"); continue; }
+    const key = "r" + (counter++);
+    newRoster[key] = { unitId: unit.id, q: q, count: count };
+  }
+  if (Object.keys(newRoster).length === 0 && errors.length === 0) errors.push("Не найдено ни одной строки с юнитами. Проверьте формат.");
+  if (errors.length > 0) return { ok: false, errors: errors };
+  return { ok: true, roster: newRoster, counter: counter };
+}
+
+function openImport() {
+  let html = '<h2>📥 Импорт ростера</h2>';
+  html += '<div style="font-size:13px;color:var(--muted);margin:6px 0 4px">Вставьте текст, полученный через «Экспорт». Формат строк:<br><code>[Фракция] Название ★Q × N = S очк.</code></div>';
+  html += '<textarea class="import-area" id="importText" placeholder="[СССР] Т-34-76 ★7 × 1 = 125 очк.&#10;[Германия] Pz.Kpfw. IV ★7 × 2 = 282 очк."></textarea>';
+  html += '<div id="importErrorBox"></div>';
+  html += '<div class="modal-actions">';
+  html += '<button class="remove-btn" id="btnImportCancel">Отмена</button>';
+  html += '<button class="add" id="btnImportDo">Импортировать</button>';
+  html += '</div>';
+  els.modalContent.innerHTML = html;
+
+  const ta = document.getElementById("importText");
+  const errBox = document.getElementById("importErrorBox");
+  const btnCancel = document.getElementById("btnImportCancel");
+  const btnDo = document.getElementById("btnImportDo");
+
+  btnCancel.addEventListener("click", closeModal);
+  btnDo.addEventListener("click", () => {
+    const text = ta.value || "";
+    if (!text.trim()) { errBox.innerHTML = '<div class="import-error">Вставьте текст ростера.</div>'; return; }
+    const result = parseRosterText(text);
+    if (!result.ok) { errBox.innerHTML = '<div class="import-error">' + result.errors.join("\n") + '</div>'; return; }
+    const applyImport = () => {
+      roster = result.roster;
+      rosterCounter = result.counter;
+      saveRoster();
+      resetExportButton();
+      renderRoster();
+      closeModal();
+    };
+    if (getRosterUnitCount() > 0) {
+      openConfirm("Текущий ростер будет заменён импортированным. Продолжить?", applyImport, null, "Импортировать");
+    } else {
+      applyImport();
+    }
+  });
+  els.modalBackdrop.classList.add("open");
 }
 
 /* =========================================================
-   9) РЕНДЕР КАТАЛОГА
+   10) РЕНДЕР КАТАЛОГА
    ========================================================= */
 function renderCatalog() {
   els.list.innerHTML = "";
@@ -621,9 +804,7 @@ function renderCatalog() {
     const row = document.createElement("div");
     row.className = "unit-row";
     row.dataset.unitId = unit.id;
-
     row.innerHTML = '<div class="info"><div class="name">' + unit.name + '</div><div class="desc">' + shortDesc(unit) + '</div></div>';
-
     let select = null;
     if (unit.noQual) {
       const noq = document.createElement("div");
@@ -643,21 +824,17 @@ function renderCatalog() {
       });
       row.appendChild(select);
     }
-
     const costEl = document.createElement("div");
     costEl.className = "cost";
     costEl.textContent = unit.cost + " очк.";
     row.appendChild(costEl);
-
     const btn = document.createElement("button");
     btn.textContent = "+";
     row.appendChild(btn);
-
     row.addEventListener("click", (e) => {
       if (e.target.closest("button") || e.target.closest("select")) return;
       openUnitCard(unit.id, null);
     });
-
     if (select) {
       select.addEventListener("change", () => {
         const remaining = pointLimit - getRosterPoints();
@@ -669,18 +846,13 @@ function renderCatalog() {
         updateButtons();
       });
     }
-
     btn.addEventListener("click", () => addUnitSmart(unit.id, select));
-
     els.list.appendChild(row);
   });
   syncCatalogQualifications();
   updateButtons();
 }
 
-/* =========================================================
-   10) СИНХРОНИЗАЦИЯ КВАЛИФИКАЦИЙ
-   ========================================================= */
 function syncCatalogQualifications() {
   const remaining = pointLimit - getRosterPoints();
   const rows = els.list.querySelectorAll(".unit-row");
@@ -689,10 +861,7 @@ function syncCatalogQualifications() {
     if (!unit) return;
     const select = row.querySelector("select.q");
     const costEl = row.querySelector(".cost");
-    if (!select) {
-      if (costEl) costEl.textContent = unit.cost + " очк.";
-      return;
-    }
+    if (!select) { if (costEl) costEl.textContent = unit.cost + " очк."; return; }
     let q = MIN_Q;
     for (let cand = BASE_Q; cand >= MIN_Q; cand--) {
       if (priceForQualification(unit.cost, cand) <= remaining) { q = cand; break; }
@@ -702,25 +871,17 @@ function syncCatalogQualifications() {
   });
 }
 
-/* =========================================================
-   11) ДОБАВЛЕНИЕ
-   ========================================================= */
 function addUnitSmart(unitId, select) {
   const unit = getUnitById(unitId);
   if (!unit) return;
   const remaining = pointLimit - getRosterPoints();
-
   if (unit.noQual) {
     if (unit.cost > remaining) return;
     addUnit(unitId, BASE_Q);
     return;
   }
-
   const chosen = select ? parseInt(select.value, 10) : BASE_Q;
-  if (priceForQualification(unit.cost, chosen) <= remaining) {
-    addUnit(unitId, chosen);
-    return;
-  }
+  if (priceForQualification(unit.cost, chosen) <= remaining) { addUnit(unitId, chosen); return; }
   for (let q = chosen - 1; q >= MIN_Q; q--) {
     if (priceForQualification(unit.cost, q) <= remaining) {
       if (select) select.value = q;
@@ -730,25 +891,19 @@ function addUnitSmart(unitId, select) {
   }
 }
 
-/* =========================================================
-   12) ОБНОВЛЕНИЕ КНОПОК
-   ========================================================= */
 function updateButtons() {
   const rows = els.list.querySelectorAll(".unit-row");
   const remaining = pointLimit - getRosterPoints();
-
   rows.forEach(row => {
     const unit = getUnitById(row.dataset.unitId);
     if (!unit) return;
     const select = row.querySelector("select.q");
     const btn = row.querySelector("button");
-
     if (select) {
       select.querySelectorAll("option").forEach(opt => {
         opt.disabled = (priceForQualification(unit.cost, parseInt(opt.value, 10)) > remaining);
       });
     }
-
     let canAfford = false;
     if (unit.noQual) canAfford = unit.cost <= remaining;
     else {
@@ -756,21 +911,16 @@ function updateButtons() {
         if (priceForQualification(unit.cost, q) <= remaining) { canAfford = true; break; }
       }
     }
-
     if (!canAfford) {
-      btn.classList.add("disabled");
-      btn.textContent = "Лимит";
-      btn.disabled = true;
+      btn.classList.add("disabled"); btn.textContent = "Лимит"; btn.disabled = true;
     } else {
-      btn.classList.remove("disabled");
-      btn.textContent = "+";
-      btn.disabled = false;
+      btn.classList.remove("disabled"); btn.textContent = "+"; btn.disabled = false;
     }
   });
 }
 
 /* =========================================================
-   13) РЕНДЕР РОСТЕРА
+   11) РЕНДЕР РОСТЕРА
    ========================================================= */
 function renderRoster() {
   const keys = Object.keys(roster).sort((ka, kb) => {
@@ -779,10 +929,11 @@ function renderRoster() {
     const qa = ua && ua.noQual ? -1 : ea.q;
     const qb = ub && ub.noQual ? -1 : eb.q;
     if (qa !== qb) return qb - qa;
-    const na = ua ? ua.name : "";
-    const nb = ub ? ub.name : "";
-    return na.localeCompare(nb, "ru");
+    return (ua ? ua.name : "").localeCompare(ub ? ub.name : "", "ru");
   });
+
+  const factions = getRosterFactions();
+  const isMixed = factions.size > 1;
 
   els.rosterList.innerHTML = "";
   if (keys.length === 0) {
@@ -794,9 +945,10 @@ function renderRoster() {
       if (!unit) return;
       const price = unitPrice(unit, entry.q);
       const qLabel = unit.noQual ? "" : ' <small style="color:var(--muted)">(★' + entry.q + ')</small>';
+      const flag = isMixed ? factionFlagHTML(unit.faction) : "";
       const item = document.createElement("div");
       item.className = "roster-item";
-      item.innerHTML = '<span class="name">' + unit.name + qLabel + '</span>' +
+      item.innerHTML = '<span class="name">' + flag + unit.name + qLabel + '</span>' +
         '<span class="qty">×' + entry.count + '</span>' +
         '<span class="unit-points">' + (price * entry.count) + ' очк.</span>' +
         '<button class="remove" title="Удалить один" data-key="' + key + '">−</button>';
@@ -828,10 +980,11 @@ function renderRoster() {
   syncCatalogQualifications();
   updateButtons();
   updateFactionTabsVisibility();
+  updateBattleButtons();
 }
 
 /* =========================================================
-   14) ДЕЙСТВИЯ
+   12) ДЕЙСТВИЯ
    ========================================================= */
 function addUnit(unitId, q) {
   const unit = getUnitById(unitId);
@@ -839,7 +992,6 @@ function addUnit(unitId, q) {
   if (unit.noQual) q = BASE_Q;
   const price = unitPrice(unit, q);
   if (getRosterPoints() + price > pointLimit) return;
-
   let foundKey = null;
   for (const key in roster) {
     if (roster[key].unitId === unitId && roster[key].q === q) { foundKey = key; break; }
@@ -850,6 +1002,7 @@ function addUnit(unitId, q) {
     roster[key] = { unitId: unitId, q: q, count: 1 };
   }
   saveRoster();
+  resetExportButton();
   renderRoster();
 }
 function removeUnit(key) {
@@ -857,25 +1010,23 @@ function removeUnit(key) {
   roster[key].count--;
   if (roster[key].count <= 0) delete roster[key];
   saveRoster();
+  resetExportButton();
   renderRoster();
 }
-
-/* =========================================================
-   15) ОЧИСТИТЬ
-   ========================================================= */
 function clearRoster() {
   roster = {};
   saveRoster();
   if (els.exportArea) els.exportArea.value = "";
+  resetExportButton();
   renderRoster();
 }
 
 /* =========================================================
-   16) ЭКСПОРТ
+   13) ЭКСПОРТ
    ========================================================= */
 function exportRoster() {
   const lines = [];
-  lines.push("=== ДОРОГА НА БЕРЛИН — РОСТЕР (v15) ===");
+  lines.push("=== ДОРОГА НА БЕРЛИН — РОСТЕР (v20) ===");
   lines.push("Лимит очков: " + pointLimit);
   lines.push("Использовано: " + getRosterPoints());
   lines.push("Остаток: " + (pointLimit - getRosterPoints()));
@@ -904,7 +1055,7 @@ function exportRoster() {
 }
 
 /* =========================================================
-   17) ЗАКРЫТИЕ МОДАЛКИ
+   14) ЗАКРЫТИЕ МОДАЛКИ
    ========================================================= */
 if (els.modalClose) els.modalClose.addEventListener("click", closeModal);
 if (els.modalBackdrop) els.modalBackdrop.addEventListener("click", (e) => {
@@ -913,7 +1064,7 @@ if (els.modalBackdrop) els.modalBackdrop.addEventListener("click", (e) => {
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
 
 /* =========================================================
-   18) ЗАГРУЗКА units.json
+   15) ЗАГРУЗКА units.json
    ========================================================= */
 async function loadUnits() {
   let data = null;
@@ -922,7 +1073,6 @@ async function loadUnits() {
     if (res.ok) data = await res.json();
   } catch (e) { console.warn("units.json не загружен, использую DEFAULT_UNITS", e); }
   if (!data) data = DEFAULT_UNITS;
-
   const common = data.common || [];
   for (const f in data) {
     if (f === "common") continue;
@@ -944,12 +1094,13 @@ async function loadUnits() {
 }
 
 /* =========================================================
-   19) ИНИЦИАЛИЗАЦИЯ
+   16) ИНИЦИАЛИЗАЦИЯ
    ========================================================= */
 loadSettings();
 loadLimit();
 loadFaction();
 loadRoster();
+loadBattle();
 
 if (els.limitInput) els.limitInput.value = pointLimit;
 if (els.limitInput) {
@@ -957,6 +1108,7 @@ if (els.limitInput) {
     const val = parseInt(e.target.value, 10);
     pointLimit = isNaN(val) || val < 0 ? 0 : val;
     saveLimit();
+    resetExportButton();
     renderRoster();
   });
 }
@@ -973,19 +1125,45 @@ factionButtons.forEach(btn => {
     currentFaction = btn.dataset.faction;
     saveFaction();
     resetClearButton();
+    resetExportButton();
     renderCatalog();
   });
 });
 
 const btnClear = document.getElementById("btnClear");
 const btnExport = document.getElementById("btnExport");
+const btnImport = document.getElementById("btnImport");
 const btnSettings = document.getElementById("btnSettings");
-if (btnExport) btnExport.addEventListener("click", () => { resetClearButton(); exportRoster(); });
-if (btnSettings) btnSettings.addEventListener("click", openSettings);
+const btnRules = document.getElementById("btnRules");
+const btnBattle = document.getElementById("btnBattle");
+const btnStop = document.getElementById("btnStop");
+
+if (btnExport) btnExport.addEventListener("click", () => {
+  resetClearButton();
+  if (!exportArmed) {
+    exportRoster();
+    exportArmed = true;
+    btnExport.textContent = "📋 Скопировать в буфер?";
+    btnExport.classList.add("armed");
+  } else {
+    copyExportToClipboard();
+  }
+});
+if (btnImport) btnImport.addEventListener("click", () => { resetClearButton(); resetExportButton(); openImport(); });
+if (btnSettings) btnSettings.addEventListener("click", () => { resetExportButton(); openSettings(); });
+if (btnRules) btnRules.addEventListener("click", () => {
+  resetClearButton();
+  resetExportButton();
+  window.open("rules.html", "_blank");
+});
+if (btnBattle) btnBattle.addEventListener("click", () => {
+  if (getRosterUnitCount() === 0) return;
+  setBattleMode(true);
+});
+if (btnStop) btnStop.addEventListener("click", () => setBattleMode(false));
 
 let clearConfirmTimer = null;
 let clearPending = false;
-
 function resetClearButton() {
   if (clearConfirmTimer) { clearTimeout(clearConfirmTimer); clearConfirmTimer = null; }
   clearPending = false;
@@ -1014,6 +1192,10 @@ document.addEventListener("click", (e) => {
   if (btnClear && btnClear.contains(e.target)) return;
   resetClearButton();
 }, true);
+
+document.body.classList.toggle("in-battle", inBattle);
+updateBattleButtons();
+resetExportButton();
 
 loadUnits();
 </script>
