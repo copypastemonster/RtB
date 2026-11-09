@@ -881,20 +881,37 @@ function syncCatalogQualifications() {
     const costEl = row.querySelector(".cost");
     if (!select) { if (costEl) costEl.textContent = unit.cost + " очк."; return; }
 
-    let q = parseInt(select.value, 10);
-    if (isNaN(q)) q = BASE_Q;
+    let current = parseInt(select.value, 10);
+    if (isNaN(current)) current = BASE_Q;
 
-    // Если текущая квалификация не влезает — понижаем, пока не влезет
-    if (priceForQualification(unit.cost, q) > remaining) {
-      let found = false;
-      for (let cand = q; cand >= MIN_Q; cand--) {
-        if (priceForQualification(unit.cost, cand) <= remaining) { q = cand; found = true; break; }
-      }
-      if (!found) q = MIN_Q;
+    // Максимум от ★7 вниз (для автовозврата)
+    let maxAffordable7 = MIN_Q;
+    for (let cand = 7; cand >= MIN_Q; cand--) {
+      if (priceForQualification(unit.cost, cand) <= remaining) { maxAffordable7 = cand; break; }
     }
 
-    select.value = q;
-    costEl.textContent = priceForQualification(unit.cost, q) + " очк.";
+    let finalQ = current;
+
+    if (priceForQualification(unit.cost, current) <= remaining) {
+      // текущая влезает
+      if (current >= 8) {
+        // ★8/★9 — ручной выбор, не трогаем
+        finalQ = current;
+      } else {
+        // ★7 и ниже — поднимаем до максимума ≤★7
+        finalQ = maxAffordable7;
+      }
+    } else {
+      // текущая не влезает — понижаем от текущей вниз до ★4
+      let found = false;
+      for (let cand = current; cand >= MIN_Q; cand--) {
+        if (priceForQualification(unit.cost, cand) <= remaining) { finalQ = cand; found = true; break; }
+      }
+      if (!found) finalQ = MIN_Q;
+    }
+
+    select.value = finalQ;
+    costEl.textContent = priceForQualification(unit.cost, finalQ) + " очк.";
   });
 }
 
